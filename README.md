@@ -1,2 +1,2 @@
-# bio -
-## link  :  qweyns.github.io
+# bio by qweyns
+## link  :  https://qweyns.github.io
