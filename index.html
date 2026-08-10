@@ -191,7 +191,8 @@
     animation:fadeslide .4s ease .22s both;
   }
   .player-top{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
-  .player-note{ font-size:14px; color:var(--accent); flex-shrink:0; }
+  .player-note{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; transform-origin:center center; will-change:transform; flex-shrink:0; }
+  .player-note img{ width:20px; height:20px; object-fit:contain; image-rendering:pixelated; filter: drop-shadow(0 0 3px var(--accent)); display:block; }
   .player-note.spin{ animation:spin 2.2s linear infinite; }
   @keyframes spin{ from{transform:rotate(0);} to{transform:rotate(360deg);} }
   .player-meta{ min-width:0; flex:1; overflow:hidden; }
@@ -204,6 +205,9 @@
     color:var(--text-dim); cursor:pointer; padding:0; transition:border-color .15s, color .15s;
   }
   .pbtn:hover{ border-color:var(--accent); color:var(--accent); }
+  .pbtn{ position:relative; }
+  .pbtn .tip{ position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%) translateY(4px); background:rgba(0,0,0,.85); color:var(--accent); font-family:'MinecraftFive',monospace; font-size:9px; padding:3px 6px; border:1px solid var(--accent); border-radius:4px; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .18s ease, transform .18s ease; z-index:50; }
+  .pbtn:hover .tip{ opacity:1; transform:translateX(-50%) translateY(0); }
   .pbtn svg{ width:11px; height:11px; }
   .player-bottom{ display:flex; align-items:center; gap:8px; }
   .p-time{ font-size:9px; color:var(--text-faint); width:30px; flex-shrink:0; font-variant-numeric:tabular-nums; }
@@ -242,7 +246,14 @@
     text-decoration:none; position:relative;
     transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
   }
-  .social-btn img{ width:24px; height:24px; display:block; }
+  .social-btn img{ width:24px; height:24px; display:block; object-fit:contain; image-rendering:auto; transition:transform .18s ease; }
+  .social-btn:hover img{ transform:scale(1.12); }
+  .social-btn[data-key="telegram"] img{ transform:scale(0.9); }
+  .social-btn[data-key="telegram"]:hover img{ transform:scale(1.0); }
+  .social-btn[data-key="discord"] img{ transform:scale(0.92); }
+  .social-btn[data-key="discord"]:hover img{ transform:scale(1.02); }
+  .social-btn[data-key="github"] img{ transform:scale(1.0); }
+  .social-btn[data-key="github"]:hover img{ transform:scale(1.12); }
   .social-btn:hover, .social-btn:focus-visible{
     transform:translateY(-3px); border-color:var(--accent);
     box-shadow:0 0 0 1px var(--accent), 0 10px 20px -8px rgba(227,168,87,.5);
@@ -378,15 +389,15 @@
 
           <div class="player">
             <div class="player-top">
-              <div class="player-note" id="playerNote">♪</div>
+              <div class="player-note" id="playerNote"><img src="assets/icons/Gemini_Generated_Image_5wj965wj965wj965-Photoroom.png" alt="note" width="20" height="20"></div>
               <div class="player-meta">
                 <div class="player-title" id="pTitle">—</div>
                 <div class="player-artist" id="pArtist">—</div>
               </div>
               <div class="player-btns">
-                <button class="pbtn" id="pPrev" title="previous"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
-                <button class="pbtn" id="pPlay" title="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
-                <button class="pbtn" id="pNext" title="next"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM6 6l8.5 6L6 18z"/></svg></button>
+                <button class="pbtn" id="pPrev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg><span class="tip">Предыдущий трек</span></button>
+                <button class="pbtn" id="pPlay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span class="tip" id="pPlayTip">Играть</span></button>
+                <button class="pbtn" id="pNext"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM6 6l8.5 6L6 18z"/></svg><span class="tip">Следующий трек</span></button>
               </div>
             </div>
             <div class="player-bottom">
@@ -636,6 +647,7 @@ function setPlaying(p){
     ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>'
     : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
   $('#playerNote').classList.toggle('spin', p);
+  var _tip = document.getElementById('pPlayTip'); if(_tip){ _tip.textContent = p ? 'Пауза' : 'Играть'; }
 }
 loadTrack(0, false);
 audio.volume = 0.55;
