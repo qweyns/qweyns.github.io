@@ -196,15 +196,19 @@
   }
   .player-top{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
   .player-note{
-    flex-shrink:0; width:18px; height:18px;
+    flex-shrink:0; width:14px; height:14px;
     background-color:var(--accent);
     -webkit-mask-image:url('assets/icons/note.png'); mask-image:url('assets/icons/note.png');
     -webkit-mask-size:contain; mask-size:contain;
     -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
     -webkit-mask-position:center; mask-position:center;
     transition: background-color .2s ease;
+    /* animation is always attached and simply paused/resumed, so pausing
+       freezes the note mid-rotation instead of snapping back to 0deg */
+    animation:spin 2.4s linear infinite;
+    animation-play-state:paused;
   }
-  .player-note.spin{ animation:spin 2.4s linear infinite; }
+  .player-note.spin{ animation-play-state:running; }
   @keyframes spin{ from{transform:rotate(0);} to{transform:rotate(360deg);} }
   .player-meta{ min-width:0; flex:1; overflow:hidden; }
   .player-title{ font-size:11.5px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:opacity .18s ease; }
@@ -328,12 +332,13 @@
 
   .ad-slot{ position:relative; min-height:172px; }
   .ad-item{
-    position:absolute; inset:0 0 auto 0;
+    position:absolute; inset:0;
     opacity:0; transform:translateY(6px);
-    transition: opacity .45s var(--ease), transform .45s var(--ease);
-    pointer-events:none;
+    transition: opacity .4s var(--ease), transform .4s var(--ease);
+    pointer-events:none; z-index:1;
   }
-  .ad-item.active{ position:relative; opacity:1; transform:translateY(0); pointer-events:auto; }
+  .ad-item.active{ opacity:1; transform:translateY(0); pointer-events:auto; z-index:2; }
+  .ad-item.leaving{ opacity:0; transform:translateY(-6px); pointer-events:none; z-index:1; }
 
   .ad-icon{ width:34px; height:34px; margin-bottom:10px; background-color:var(--accent); }
   .ad-icon.mask{
@@ -350,7 +355,7 @@
   }
   .ad-cta:hover{ opacity:.85; transform:translateX(2px); }
 
-  @media (min-width:900px){ .ad-panel:not([hidden]){ display:block; } .ad-panel[data-mobile-only]{ display:none; } }
+  @media (min-width:900px){ .ad-panel:not([hidden]){ display:block; } }
   @media (max-width:899px){ .ad-panel{ display:none; } }
 
   /* ---- achievement toast ---- */
@@ -468,7 +473,7 @@
                 </button>
                 <button class="pbtn" id="pPlay" aria-label="play">
                   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                  <span class="ptip" id="pPlayTip">play</span>
+                  <span class="ptip">play</span>
                 </button>
                 <button class="pbtn" id="pNext" aria-label="next">
                   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM6 6l8.5 6L6 18z"/></svg>
@@ -784,12 +789,24 @@ tick(); setInterval(tick, 15000);
     });
   }
 
+  let currentEl = null;
   function show(i){
     idx = i;
-    slot.innerHTML = '';
+    const prevEl = currentEl;
     const el = renderItem(CONFIG.ads[idx]);
     slot.appendChild(el);
-    requestAnimationFrame(() => el.classList.add('active'));
+    currentEl = el;
+
+    // true crossfade: new card fades/slides in while the old one fades/slides out,
+    // both present at once instead of an instant swap.
+    requestAnimationFrame(() => {
+      el.classList.add('active');
+      if (prevEl){
+        prevEl.classList.remove('active');
+        prevEl.classList.add('leaving');
+        setTimeout(() => prevEl.remove(), 420);
+      }
+    });
     renderDots();
   }
 
@@ -889,7 +906,7 @@ function setPlaying(p){
   $('#pPlay').innerHTML = (p
     ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>'
     : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>')
-    + `<span class="ptip" id="pPlayTip">${p ? 'pause' : 'play'}</span>`;
+    + `<span class="ptip">${p ? 'pause' : 'play'}</span>`;
   $('#playerNote').classList.toggle('spin', p);
 }
 loadTrack(0, false);
