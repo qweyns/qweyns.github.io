@@ -250,23 +250,39 @@
   .p-fill{ position:absolute; inset:0; width:0%; background:var(--accent); border-radius:2px; transition:width .1s linear; }
   .p-vol{ width:44px; accent-color:var(--accent); }
 
+  /* the input line reads as its own clearly-bounded box now — a subtle panel
+     with padding, so it's obvious where typing happens vs. the history above it */
   .prompt-line{
-    display:flex; align-items:center; gap:8px; border-top:1px solid var(--border);
-    padding-top:14px; font-size:12px;
+    display:flex; align-items:center; gap:10px;
+    margin-top:14px; padding:9px 11px;
+    background:var(--panel-2); border:1px solid var(--border); border-radius:6px;
+    font-size:12px;
+    transition: border-color .18s var(--ease), background-color .18s var(--ease);
   }
+  .prompt-line:focus-within{ border-color:var(--accent); background:var(--accent-soft); }
   .prompt-tag{ color:var(--accent); flex-shrink:0; white-space:nowrap; }
   .prompt-line input{
     flex:1; min-width:0; background:transparent; border:none; outline:none;
     color:var(--text); font-family:inherit; font-size:12px; caret-color:var(--accent);
+    padding-left:2px; /* small indent so the caret never sits flush against the $ tag */
   }
   .prompt-line input::placeholder{ color:var(--text-faint); }
 
+  /* history stays compact and gets its own themed scrollbar instead of the
+     bulky default browser one, so a long command history never eats the layout */
   #console-out{
     font-size:11px; color:var(--text-dim); line-height:1.9;
     max-height:0; overflow:hidden; transition:max-height .3s var(--ease);
   }
-  #console-out.open{ max-height:240px; overflow-y:auto; margin-top:10px; }
-  #console-out .c-line{ white-space:pre-wrap; animation:appear .2s ease; }
+  #console-out.open{
+    max-height:170px; overflow-y:auto; margin-top:10px; padding:0 8px 2px 0;
+    scrollbar-width:thin; scrollbar-color:var(--border) transparent;
+  }
+  #console-out.open::-webkit-scrollbar{ width:5px; }
+  #console-out.open::-webkit-scrollbar-track{ background:transparent; }
+  #console-out.open::-webkit-scrollbar-thumb{ background:var(--border); border-radius:3px; }
+  #console-out.open::-webkit-scrollbar-thumb:hover{ background:var(--accent); }
+  #console-out .c-line{ white-space:pre-wrap; animation:appear .2s ease; padding:1px 0; }
   #console-out .c-cmd{ color:var(--text); }
   #console-out .c-cmd::before{ content:"guest@qweyns:~$ "; color:var(--accent); }
   #console-out a{ color:var(--accent); }
@@ -313,7 +329,9 @@
     width:0; padding:12px 0; margin:0; border-color:transparent;
     pointer-events:none;
   }
-  .ad-panel[hidden]{ display:none; }
+  /* single source of truth for "fully dismissed" — no attribute/selector
+     specificity race with the responsive display rules below */
+  .ad-panel.is-dismissed{ display:none !important; }
 
   .ad-close{
     position:absolute; top:6px; right:6px; width:18px; height:18px;
@@ -355,7 +373,7 @@
   }
   .ad-cta:hover{ opacity:.85; transform:translateX(2px); }
 
-  @media (min-width:900px){ .ad-panel:not([hidden]){ display:block; } }
+  @media (min-width:900px){ .ad-panel{ display:block; } }
   @media (max-width:899px){ .ad-panel{ display:none; } }
 
   /* ---- achievement toast ---- */
@@ -759,9 +777,18 @@ tick(); setInterval(tick, 15000);
   const stage = $('#stage');
   let idx = 0, timer = null;
 
-  const closedBefore = localStorage.getItem('qweyns_ad_closed') === '1';
+  // localStorage can throw (private-mode Safari, disabled storage, etc.) —
+  // never let a storage failure break the ad panel or the rest of the page.
+  function storageGet(key){
+    try { return localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function storageSet(key, val){
+    try { localStorage.setItem(key, val); } catch (e) { /* ignore — non-critical */ }
+  }
+
+  const closedBefore = storageGet('qweyns_ad_closed') === '1';
   if (closedBefore){
-    panel.setAttribute('hidden', '');
+    panel.classList.add('is-dismissed');
     stage.classList.add('ad-closed');
   }
 
@@ -830,8 +857,8 @@ tick(); setInterval(tick, 15000);
     stopRotation();
     panel.classList.add('closing');
     stage.classList.add('ad-closed');
-    localStorage.setItem('qweyns_ad_closed', '1');
-    setTimeout(() => panel.setAttribute('hidden', ''), 420);
+    storageSet('qweyns_ad_closed', '1');
+    setTimeout(() => panel.classList.add('is-dismissed'), 420);
   });
 })();
 
