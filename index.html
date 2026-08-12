@@ -2,10 +2,30 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>qweyns</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>qweyns — Java developer / Minecraft plugins</title>
+<meta name="description" content="qweyns — Java developer building Minecraft plugins (SmashEgg, QweMascots, QweMine). Terminal-styled bio-link: links, music, and a couple of secrets.">
 <meta name="theme-color" content="#0b0d11">
-<link rel="icon" href="https://avatars.githubusercontent.com/u/180417247?v=4">
+
+<!-- Open Graph / Telegram / Discord preview -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="qweyns — Java developer / Minecraft plugins">
+<meta property="og:description" content="Terminal-styled bio-link. Links, music player, and a couple of secrets worth finding.">
+<meta property="og:image" content="https://qweyns.github.io/assets/icons/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://qweyns.github.io/">
+
+<!-- Twitter/X card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="qweyns — Java developer / Minecraft plugins">
+<meta name="twitter:description" content="Terminal-styled bio-link. Links, music player, and a couple of secrets worth finding.">
+<meta name="twitter:image" content="https://qweyns.github.io/assets/icons/og-image.png">
+
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icons/favicon-512.png">
 
 <style>
   @font-face{
@@ -210,6 +230,14 @@
   }
   .player-note.spin{ animation-play-state:running; }
   @keyframes spin{ from{transform:rotate(0);} to{transform:rotate(360deg);} }
+  /* very old browsers without CSS mask support: fall back to the plain
+     (untinted) icon image instead of an invisible element */
+  @supports not ((mask-image: url(a.png)) or (-webkit-mask-image: url(a.png))){
+    .player-note{
+      background-color:transparent; background-image:url('assets/icons/note.png');
+      background-size:contain; background-repeat:no-repeat; background-position:center;
+    }
+  }
   .player-meta{ min-width:0; flex:1; overflow:hidden; }
   .player-title{ font-size:11.5px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:opacity .18s ease; }
   .player-artist{ font-size:10px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:opacity .18s ease; }
@@ -310,6 +338,12 @@
 
   .foot{ text-align:center; font-size:9px; color:var(--text-faint); margin-top:8px; }
   .foot .konami-hint{ opacity:.5; }
+  .restore-ad-btn{
+    background:none; border:none; color:var(--text-faint); font-family:inherit;
+    font-size:9px; cursor:pointer; padding:0; margin-left:2px; text-decoration:underline;
+    text-underline-offset:2px; transition:color .15s ease;
+  }
+  .restore-ad-btn:hover{ color:var(--accent); }
 
   /* ---- ad panel ---- */
   .ad-panel{
@@ -364,6 +398,12 @@
     -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
     -webkit-mask-position:center; mask-position:center;
   }
+  @supports not ((mask-image: url(a.png)) or (-webkit-mask-image: url(a.png))){
+    .ad-icon.mask{
+      background-color:transparent; background-image:var(--icon-src);
+      background-size:contain; background-repeat:no-repeat; background-position:center;
+    }
+  }
   .ad-title{ font-size:13px; color:var(--text); margin-bottom:6px; line-height:1.5; }
   .ad-body{ font-size:10.5px; color:var(--text-dim); line-height:1.7; margin-bottom:12px; }
   .ad-cta{
@@ -373,8 +413,20 @@
   }
   .ad-cta:hover{ opacity:.85; transform:translateX(2px); }
 
-  @media (min-width:900px){ .ad-panel{ display:block; } }
-  @media (max-width:899px){ .ad-panel{ display:none; } }
+  @media (min-width:900px){ .ad-panel{ width:190px; display:block; } }
+
+  /* mobile: instead of hiding the ad entirely, stack it as a full-width
+     card below the terminal — compact enough not to dominate the screen */
+  @media (max-width:899px){
+    .stage{ flex-direction:column; align-items:center; }
+    .stage.ad-closed{ gap:16px; }
+    .main-col{ max-width:100%; }
+    .ad-panel{ width:100%; max-width:560px; box-sizing:border-box; }
+    .ad-slot{ min-height:118px; }
+    .ad-icon{ width:26px; height:26px; margin-bottom:7px; }
+    .ad-title{ font-size:12.5px; }
+    .ad-body{ font-size:10px; margin-bottom:9px; }
+  }
 
   /* ---- achievement toast ---- */
   #toast-wrap{ position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:10000; display:flex; flex-direction:column; gap:8px; align-items:center; }
@@ -425,12 +477,33 @@
 
   @media (prefers-reduced-motion: reduce){ *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; } }
 
+  @media (max-width:600px){
+    .stage{ padding:0 2px; }
+    .head{ gap:11px; }
+    .avatar{ width:48px; height:48px; }
+    .player-btns{ gap:6px; }
+    .pbtn{ width:30px; height:30px; }
+    .p-vol{ width:52px; }
+    .socials{ gap:8px; }
+    .social-btn{ width:42px; height:42px; }
+    #console-out.open{ max-height:150px; }
+  }
+
   @media (max-width:480px){
     .term-body{ padding:18px 14px 16px; }
     .name{ font-size:17px; }
+    .term-path{ display:none; } /* decorative label, meta (visits/clock) needs the room more */
+    .term-meta{ margin-left:auto; }
+    .badge{ font-size:9px; padding:3px 6px 3px 5px; }
+  }
+
+  @media (max-width:360px){
+    .name-row{ gap:6px; }
+    .about{ font-size:11px; }
   }
 </style>
 </head>
+
 <body>
 
 <div class="bg-grid"></div>
@@ -517,7 +590,10 @@
     </div>
 
     <div class="socials" id="socials"></div>
-    <div class="foot">qweyns · terminal edition <span class="konami-hint">· ↑↑↓↓←→←→ba</span></div>
+    <div class="foot">
+      qweyns · terminal edition <span class="konami-hint">· ↑↑↓↓←→←→ba</span>
+      <button class="restore-ad-btn" id="restoreAdBtn" type="button" hidden>· show promo</button>
+    </div>
   </div>
 
   <div class="ad-panel" id="adPanel">
@@ -644,10 +720,14 @@ tick(); setInterval(tick, 15000);
     el.textContent = `${data.value} visits`;
   }catch(e){
     // offline fallback: local-only count for this browser
-    const KEY = 'qweyns_bio_views_local';
-    let n = parseInt(localStorage.getItem(KEY) || '0', 10) + 1;
-    localStorage.setItem(KEY, String(n));
-    el.textContent = `${n} visits (local)`;
+    try{
+      const KEY = 'qweyns_bio_views_local';
+      let n = parseInt(localStorage.getItem(KEY) || '0', 10) + 1;
+      localStorage.setItem(KEY, String(n));
+      el.textContent = `${n} visits (local)`;
+    }catch(e2){
+      el.textContent = 'visits: n/a';
+    }
   }
 })();
 
@@ -760,7 +840,7 @@ tick(); setInterval(tick, 15000);
     a.className = 'social-btn';
     a.style.animationDelay = (0.55 + i * 0.08) + 's';
     a.innerHTML = `<img src="${l.icon}" alt="${l.label}" loading="lazy"><span class="tip">${l.label}</span>`;
-    a.addEventListener('click', clickSound);
+    a.addEventListener('click', () => { clickSound(); trackSocialOpen(l.key); });
     frag.appendChild(a);
   });
   wrap.appendChild(frag);
@@ -787,22 +867,24 @@ tick(); setInterval(tick, 15000);
   }
 
   const closedBefore = storageGet('qweyns_ad_closed') === '1';
+  const restoreBtn = $('#restoreAdBtn');
   if (closedBefore){
     panel.classList.add('is-dismissed');
     stage.classList.add('ad-closed');
+    if (restoreBtn) restoreBtn.hidden = false;
   }
 
   function renderItem(ad){
     const el = document.createElement('div');
     el.className = 'ad-item';
     const icon = ad.iconMask
-      ? `<div class="ad-icon mask" style="-webkit-mask-image:url('${ad.iconMask}');mask-image:url('${ad.iconMask}');"></div>`
+      ? `<div class="ad-icon mask" style="-webkit-mask-image:url('${ad.iconMask}');mask-image:url('${ad.iconMask}');--icon-src:url('${ad.iconMask}');"></div>`
       : `<div class="ad-icon" style="background:none;">${ad.iconSvg}</div>`;
     el.innerHTML = `
       ${icon}
       <div class="ad-title">${ad.title}</div>
       <div class="ad-body">${ad.body}</div>
-      <a class="ad-cta" href="${ad.url}" target="_blank" rel="noopener">${ad.ctaText}</a>
+      <a class="ad-cta" href="${ad.url}" target="_blank" rel="noopener noreferrer">${ad.ctaText}</a>
     `;
     return el;
   }
@@ -845,12 +927,20 @@ tick(); setInterval(tick, 15000);
   }
   function stopRotation(){ if (timer) clearInterval(timer); timer = null; }
 
+  function openAds(){
+    panel.classList.remove('is-dismissed', 'closing');
+    stage.classList.remove('ad-closed');
+    if (restoreBtn) restoreBtn.hidden = true;
+    show(idx);
+    startRotation();
+  }
+
   if (!closedBefore){
     show(0);
     startRotation();
-    panel.addEventListener('mouseenter', stopRotation);
-    panel.addEventListener('mouseleave', startRotation);
   }
+  panel.addEventListener('mouseenter', stopRotation);
+  panel.addEventListener('mouseleave', () => { if (!panel.classList.contains('is-dismissed')) startRotation(); });
 
   closeBtn.addEventListener('click', () => {
     clickSound();
@@ -858,8 +948,17 @@ tick(); setInterval(tick, 15000);
     panel.classList.add('closing');
     stage.classList.add('ad-closed');
     storageSet('qweyns_ad_closed', '1');
+    if (restoreBtn) restoreBtn.hidden = false;
     setTimeout(() => panel.classList.add('is-dismissed'), 420);
   });
+
+  if (restoreBtn){
+    restoreBtn.addEventListener('click', () => {
+      clickSound();
+      storageSet('qweyns_ad_closed', '0');
+      openAds();
+    });
+  }
 })();
 
 /* ============================================================
@@ -911,7 +1010,7 @@ function startRoleTyping(){
    music player
    ============================================================ */
 const audio = $('#audio');
-let trackIndex = 0, isPlaying = false;
+let trackIndex = 0, isPlaying = false, audioErrorStreak = 0;
 function fmt(t){ if (!isFinite(t)) return '0:00'; const m = Math.floor(t/60), s = Math.floor(t%60); return `${m}:${String(s).padStart(2,'0')}`; }
 function loadTrack(i, autoplay){
   trackIndex = (i + CONFIG.tracks.length) % CONFIG.tracks.length;
@@ -943,11 +1042,28 @@ $('#pNext').addEventListener('click', () => { clickSound(); loadTrack(trackIndex
 $('#pPrev').addEventListener('click', () => { clickSound(); loadTrack(trackIndex-1, true); });
 audio.addEventListener('play', () => setPlaying(true));
 audio.addEventListener('pause', () => setPlaying(false));
-audio.addEventListener('ended', () => loadTrack(trackIndex+1, true));
+audio.addEventListener('ended', () => {
+  audioErrorStreak = 0;
+  unlock('full_listen', 'Full Listen', 'Stuck around for an entire track.');
+  loadTrack(trackIndex+1, true);
+});
 audio.addEventListener('timeupdate', () => {
   $('#pCur').textContent = fmt(audio.currentTime);
   $('#pDur').textContent = fmt(audio.duration);
   $('#pFill').style.width = (audio.duration ? (audio.currentTime/audio.duration*100) : 0) + '%';
+});
+// a missing/broken mp3 file shouldn't just go silent — surface it, then
+// try the next track once instead of getting stuck forever.
+audio.addEventListener('error', () => {
+  $('#pTitle').textContent = 'Track unavailable';
+  $('#pArtist').textContent = 'skipping to next…';
+  setPlaying(false);
+  audioErrorStreak++;
+  if (audioErrorStreak < CONFIG.tracks.length){
+    setTimeout(() => loadTrack(trackIndex+1, true), 900);
+  } else {
+    $('#pArtist').textContent = 'no playable tracks found';
+  }
 });
 $('#pBar').addEventListener('click', (e) => {
   const r = e.currentTarget.getBoundingClientRect();
@@ -959,11 +1075,14 @@ $('#pVol').addEventListener('input', (e) => { audio.volume = e.target.value / 10
 /* ============================================================
    achievements / toasts
    ============================================================ */
-const unlocked = new Set(JSON.parse(localStorage.getItem('qweyns_achievements') || '[]'));
+function storageGetGlobal(key){ try { return localStorage.getItem(key); } catch(e){ return null; } }
+function storageSetGlobal(key, val){ try { localStorage.setItem(key, val); } catch(e){ /* ignore */ } }
+
+const unlocked = new Set(JSON.parse(storageGetGlobal('qweyns_achievements') || '[]'));
 function unlock(id, title, desc){
   if (unlocked.has(id)) return;
   unlocked.add(id);
-  localStorage.setItem('qweyns_achievements', JSON.stringify([...unlocked]));
+  storageSetGlobal('qweyns_achievements', JSON.stringify([...unlocked]));
   successSound();
   const wrap = $('#toast-wrap');
   const t = document.createElement('div');
@@ -971,6 +1090,18 @@ function unlock(id, title, desc){
   t.innerHTML = `<div class="toast-icon"></div><div class="toast-text"><b>ACHIEVEMENT GET!</b>${title}<br><span style="color:var(--text-faint)">${desc}</span></div>`;
   wrap.appendChild(t);
   setTimeout(() => t.remove(), 3600);
+}
+
+/* spent 5+ minutes on the page */
+setTimeout(() => unlock('lingered', 'Making Yourself at Home', "Spent 5 minutes here. It's a nice terminal, isn't it."), 5 * 60 * 1000);
+
+/* clicked every social link at least once */
+const openedSocials = new Set();
+function trackSocialOpen(key){
+  openedSocials.add(key);
+  if (openedSocials.size >= CONFIG.links.length){
+    unlock('all_socials', 'Well Connected', 'Checked out every social link.');
+  }
 }
 
 /* konami code easter egg */
@@ -999,7 +1130,7 @@ const gameOverlay = $('#game-overlay');
 const gameField = $('#game-field');
 let gameTimer = null, gameActive = false, score = 0, timeLeft = 15;
 const bestKey = 'qweyns_smashegg_best';
-$('#gBest').textContent = localStorage.getItem(bestKey) || '0';
+$('#gBest').textContent = storageGetGlobal(bestKey) || '0';
 
 function openGame(){ gameOverlay.classList.add('open'); }
 function closeGame(){ gameOverlay.classList.remove('open'); stopGame(); }
@@ -1045,9 +1176,9 @@ function endGame(){
   gameActive = false;
   clearInterval(gameTimer);
   gameField.innerHTML = '';
-  const best = parseInt(localStorage.getItem(bestKey) || '0', 10);
+  const best = parseInt(storageGetGlobal(bestKey) || '0', 10);
   if (score > best){
-    localStorage.setItem(bestKey, String(score));
+    storageSetGlobal(bestKey, String(score));
     $('#gBest').textContent = score;
     unlock('smashegg_best', 'New High Score', `Smashed ${score} eggs in 15 seconds.`);
   }
