@@ -1,0 +1,14 @@
+{
+  "name": "qweyns — bio link",
+  "short_name": "qweyns",
+  "description": "Java developer / Minecraft plugins. Terminal-styled bio-link page.",
+  "start_url": "https://qweyns.github.io/",
+  "scope": "https://qweyns.github.io/",
+  "display": "standalone",
+  "background_color": "#0b0d11",
+  "theme_color": "#0b0d11",
+  "icons": [
+    { "src": "assets/icons/favicon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icons/favicon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
