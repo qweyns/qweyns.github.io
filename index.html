@@ -63,9 +63,14 @@
     letter-spacing:.02em;
     display:flex;
     align-items:center;
+    /* when the console history grows the terminal taller than the viewport,
+       plain `center` can crop the top (the profile/avatar) out of scroll
+       range entirely — `safe center` keeps it reachable by scrolling up.
+       Browsers that don't understand the value just keep the line above. */
+    align-items:safe center;
     justify-content:center;
     min-height:100vh;
-    padding:24px;
+    padding:24px 24px 40px;
     position:relative;
     overflow-x:hidden;
     cursor:default;
@@ -379,12 +384,19 @@
   .ad-tag{ display:flex; align-items:center; gap:6px; font-size:9px; color:var(--text-faint); letter-spacing:.08em; margin-bottom:12px; padding-right:16px; }
   .ad-tag .blink-dot{ width:5px; height:5px; background:var(--accent); animation:blink 1.1s step-end infinite; flex-shrink:0; }
   .ad-tag .ad-dots{ display:flex; gap:3px; margin-left:auto; }
-  .ad-tag .ad-dot{ width:4px; height:4px; border-radius:1px; background:var(--border); transition:background .3s ease; }
+  .ad-tag .ad-dot{ width:4px; height:4px; border-radius:1px; background:var(--border); transition:background .3s ease, transform .15s ease; cursor:pointer; }
+  .ad-tag .ad-dot:hover{ transform:scale(1.6); }
   .ad-tag .ad-dot.on{ background:var(--accent); }
 
-  .ad-slot{ position:relative; min-height:172px; }
+  .ad-slot{ touch-action: pan-y; }
+
+  /* height is set dynamically per-ad from JS (each ad's real content height),
+     with min-height only as a floor for very short ads — this is what was
+     clipping the CTA button/body text before when content was taller than
+     the old fixed height */
+  .ad-slot{ position:relative; min-height:100px; transition:height .4s var(--ease); }
   .ad-item{
-    position:absolute; inset:0;
+    position:absolute; top:0; left:0; right:0;
     opacity:0; transform:translateY(6px);
     transition: opacity .4s var(--ease), transform .4s var(--ease);
     pointer-events:none; z-index:1;
@@ -422,7 +434,7 @@
     .stage.ad-closed{ gap:16px; }
     .main-col{ max-width:100%; }
     .ad-panel{ width:100%; max-width:560px; box-sizing:border-box; }
-    .ad-slot{ min-height:118px; }
+    .ad-slot{ min-height:0; }
     .ad-icon{ width:26px; height:26px; margin-bottom:7px; }
     .ad-title{ font-size:12.5px; }
     .ad-body{ font-size:10px; margin-bottom:9px; }
@@ -713,18 +725,30 @@ tick(); setInterval(tick, 15000);
 (async function views(){
   const el = $('#views');
   const { namespace, key } = CONFIG.counter;
+  const counterKey = `${namespace}_${key}`;
+  const seenFlag = 'qweyns_bio_counted_device';
+
+  // this device already bumped the global counter once before — just read
+  // the current value instead of incrementing it again on every reload
+  let alreadyCounted = false;
+  try{ alreadyCounted = localStorage.getItem(seenFlag) === '1'; }catch(e){ /* ignore */ }
+
   try{
-    const res = await fetch(`https://countapi.mileshilliard.com/api/v1/hit/${namespace}_${key}`);
+    const endpoint = alreadyCounted ? 'get' : 'hit';
+    const res = await fetch(`https://countapi.mileshilliard.com/api/v1/${endpoint}/${counterKey}`);
     if (!res.ok) throw new Error('bad response');
     const data = await res.json();
     el.textContent = `${data.value} visits`;
+    if (!alreadyCounted){
+      try{ localStorage.setItem(seenFlag, '1'); }catch(e){ /* ignore */ }
+    }
   }catch(e){
-    // offline fallback: local-only count for this browser
+    // offline fallback: local-only count for this browser, also only bumped once
     try{
       const KEY = 'qweyns_bio_views_local';
-      let n = parseInt(localStorage.getItem(KEY) || '0', 10) + 1;
-      localStorage.setItem(KEY, String(n));
-      el.textContent = `${n} visits (local)`;
+      let n = parseInt(localStorage.getItem(KEY) || '0', 10);
+      if (!alreadyCounted){ n += 1; localStorage.setItem(KEY, String(n)); localStorage.setItem(seenFlag, '1'); }
+      el.textContent = `${n || 1} visits (local)`;
     }catch(e2){
       el.textContent = 'visits: n/a';
     }
@@ -865,8 +889,18 @@ tick(); setInterval(tick, 15000);
   function storageSet(key, val){
     try { localStorage.setItem(key, val); } catch (e) { /* ignore — non-critical */ }
   }
+  function storageRemove(key){
+    try { localStorage.removeItem(key); } catch (e) { /* ignore — non-critical */ }
+  }
 
-  const closedBefore = storageGet('qweyns_ad_closed') === '1';
+  // v2: older site versions had no way to bring the ad back once dismissed,
+  // so anyone who closed it there was stuck with it gone forever. Moving to
+  // a new storage key resets that one time; the "show promo" restore button
+  // (added below) means it's never a dead end again going forward.
+  storageRemove('qweyns_ad_closed');
+  const AD_CLOSED_KEY = 'qweyns_ad_closed_v2';
+
+  const closedBefore = storageGet(AD_CLOSED_KEY) === '1';
   const restoreBtn = $('#restoreAdBtn');
   if (closedBefore){
     panel.classList.add('is-dismissed');
@@ -894,6 +928,7 @@ tick(); setInterval(tick, 15000);
     CONFIG.ads.forEach((_, i) => {
       const d = document.createElement('span');
       d.className = 'ad-dot' + (i === idx ? ' on' : '');
+      d.addEventListener('click', () => { clickSound(); stopRotation(); show(i); startRotation(); });
       dotsWrap.appendChild(d);
     });
   }
@@ -905,6 +940,12 @@ tick(); setInterval(tick, 15000);
     const el = renderItem(CONFIG.ads[idx]);
     slot.appendChild(el);
     currentEl = el;
+
+    // each ad's text length differs, so measure its real content height and
+    // resize the slot to match — this is what used to clip the CTA button
+    // when a card's text ran longer than the old fixed height.
+    const targetH = el.scrollHeight;
+    slot.style.height = targetH + 'px';
 
     // true crossfade: new card fades/slides in while the old one fades/slides out,
     // both present at once instead of an instant swap.
@@ -920,6 +961,7 @@ tick(); setInterval(tick, 15000);
   }
 
   function next(){ show((idx + 1) % CONFIG.ads.length); }
+  function prev(){ show((idx - 1 + CONFIG.ads.length) % CONFIG.ads.length); }
 
   function startRotation(){
     stopRotation();
@@ -942,12 +984,32 @@ tick(); setInterval(tick, 15000);
   panel.addEventListener('mouseenter', stopRotation);
   panel.addEventListener('mouseleave', () => { if (!panel.classList.contains('is-dismissed')) startRotation(); });
 
+  // swipe to flip through ads on touch devices — auto-rotation alone doesn't
+  // give someone on mobile a way to look at a specific card on demand.
+  let touchX = 0, touchY = 0, touchActive = false;
+  slot.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    touchX = t.clientX; touchY = t.clientY; touchActive = true;
+    stopRotation();
+  }, { passive:true });
+  slot.addEventListener('touchend', (e) => {
+    if (!touchActive) return;
+    touchActive = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchX, dy = t.clientY - touchY;
+    if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy) * 1.4){
+      clickSound();
+      if (dx < 0) next(); else prev();
+    }
+    if (!panel.classList.contains('is-dismissed')) startRotation();
+  }, { passive:true });
+
   closeBtn.addEventListener('click', () => {
     clickSound();
     stopRotation();
     panel.classList.add('closing');
     stage.classList.add('ad-closed');
-    storageSet('qweyns_ad_closed', '1');
+    storageSet(AD_CLOSED_KEY, '1');
     if (restoreBtn) restoreBtn.hidden = false;
     setTimeout(() => panel.classList.add('is-dismissed'), 420);
   });
@@ -955,7 +1017,7 @@ tick(); setInterval(tick, 15000);
   if (restoreBtn){
     restoreBtn.addEventListener('click', () => {
       clickSound();
-      storageSet('qweyns_ad_closed', '0');
+      storageSet(AD_CLOSED_KEY, '0');
       openAds();
     });
   }
@@ -1016,16 +1078,21 @@ function loadTrack(i, autoplay){
   trackIndex = (i + CONFIG.tracks.length) % CONFIG.tracks.length;
   const t = CONFIG.tracks[trackIndex];
   const meta = $('.player-meta');
+
+  // functional audio state changes synchronously — nothing here waits on
+  // the cosmetic fade below, so play() always acts on the correct source
+  audio.src = t.src;
+  $('#pFill').style.width = '0%';
+  $('#pCur').textContent = '0:00';
+  if (autoplay) audio.play().catch(()=>{});
+
+  // title/artist swap gets a small fade purely for visual polish
   meta.style.opacity = '0';
   setTimeout(() => {
-    audio.src = t.src;
     $('#pTitle').textContent = t.title;
     $('#pArtist').textContent = t.artist;
-    $('#pFill').style.width = '0%';
-    $('#pCur').textContent = '0:00';
     meta.style.opacity = '1';
   }, 120);
-  if (autoplay) audio.play().catch(()=>{});
 }
 function setPlaying(p){
   isPlaying = p;
@@ -1128,11 +1195,20 @@ function trackSocialOpen(key){
    ============================================================ */
 const gameOverlay = $('#game-overlay');
 const gameField = $('#game-field');
-let gameTimer = null, gameActive = false, score = 0, timeLeft = 15;
+const GAME_DURATION = 15;
+let gameTimer = null, gameActive = false, score = 0, timeLeft = GAME_DURATION;
 const bestKey = 'qweyns_smashegg_best';
 $('#gBest').textContent = storageGetGlobal(bestKey) || '0';
 
-function openGame(){ gameOverlay.classList.add('open'); }
+// reopening the overlay after a finished (or aborted) round was leaving the
+// previous round's leftover score/time on screen until "start" was pressed —
+// reset the display every time the overlay opens, not just on start
+function resetGameDisplay(){
+  score = 0; timeLeft = GAME_DURATION;
+  $('#gScore').textContent = score;
+  $('#gTime').textContent = timeLeft;
+}
+function openGame(){ resetGameDisplay(); gameOverlay.classList.add('open'); }
 function closeGame(){ gameOverlay.classList.remove('open'); stopGame(); }
 $('#gameClose').addEventListener('click', () => { clickSound(); closeGame(); });
 $('#gameStart').addEventListener('click', () => { clickSound(); startGame(); });
@@ -1144,15 +1220,23 @@ function stopGame(){
 }
 function startGame(){
   stopGame();
-  score = 0; timeLeft = 15; gameActive = true;
+  score = 0; timeLeft = GAME_DURATION; gameActive = true;
   $('#gScore').textContent = score;
   $('#gTime').textContent = timeLeft;
   spawnEgg();
+  // timestamp-based countdown instead of naive `timeLeft--` per tick —
+  // setInterval drifts (background tabs, slow devices), so counting down
+  // by subtraction alone can visibly desync from real elapsed time.
+  const endAt = Date.now() + GAME_DURATION * 1000;
   gameTimer = setInterval(() => {
-    timeLeft--;
-    $('#gTime').textContent = timeLeft;
-    if (timeLeft <= 0) endGame();
-  }, 1000);
+    const remainingMs = endAt - Date.now();
+    const secs = Math.max(0, Math.ceil(remainingMs / 1000));
+    if (secs !== timeLeft){
+      timeLeft = secs;
+      $('#gTime').textContent = timeLeft;
+    }
+    if (remainingMs <= 0) endGame();
+  }, 100);
 }
 function spawnEgg(){
   if (!gameActive) return;
