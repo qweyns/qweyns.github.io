@@ -186,9 +186,6 @@
   .term:hover .dot:nth-child(3){ background:var(--ok); }
   .term-path{ margin-left:8px; font-size:11px; color:var(--text-faint); flex:1; text-align:center; letter-spacing:.04em; }
   .term-meta{ font-size:10px; color:var(--text-faint); font-variant-numeric:tabular-nums; display:flex; gap:10px; }
-  .term-meta .views::before{ content:"◆ "; color:var(--accent); }
-  /* on desktop the visit count moves under the ad panel; the term-bar copy is mobile-only */
-  @media (min-width:900px){ .term-meta .views{ display:none; } }
 
   .term-body{ padding:22px 20px 18px; min-height:120px; }
 
@@ -376,12 +373,6 @@
   .restore-ad-btn:hover{ color:var(--accent); }
   .foot-utils .restore-ad-btn{ margin-left:0; }
 
-  /* ---- right column: ad panel + visit counter plate (desktop only) ---- */
-  .right-col{ display:contents; }
-  @media (min-width:900px){
-    .right-col{ display:flex; flex-direction:column; gap:12px; width:190px; flex-shrink:0; }
-  }
-
   .ad-panel{
     width:190px; flex-shrink:0; background:var(--panel);
     border:1px solid var(--border); padding:12px; position:relative;
@@ -448,18 +439,18 @@
   }
   .ad-cta:hover{ opacity:.85; transform:translateX(2px); }
 
-  /* ---- visit counter plate, desktop only, lives under the ad panel ---- */
-  .views-plate{
-    display:none; align-items:center; gap:8px;
-    background:var(--panel); border:1px solid var(--border); border-radius:6px;
-    padding:9px 12px; font-size:10px; color:var(--text-faint);
-    position:relative; font-variant-numeric:tabular-nums;
+  /* ---- visit-count badge, sits centered above the terminal card ---- */
+  .views-badge{
+    display:flex; align-items:center; gap:7px;
+    background:var(--panel); border:1px solid var(--border); border-radius:100px;
+    padding:5px 13px; font-size:10px; color:var(--text-faint);
+    font-variant-numeric:tabular-nums;
+    animation:fadeslide .4s ease both;
   }
-  .views-plate::before, .views-plate::after{ content:""; position:absolute; width:5px; height:5px; background:var(--accent); opacity:.6; }
-  .views-plate::before{ top:-1px; left:-1px; }
-  .views-plate::after{ bottom:-1px; right:-1px; }
-  .vp-dot{ width:5px; height:5px; background:var(--accent); border-radius:1px; flex-shrink:0; }
-  @media (min-width:900px){ .views-plate{ display:flex; } }
+  .vb-dot{
+    width:5px; height:5px; border-radius:50%; background:var(--accent); flex-shrink:0;
+    box-shadow:0 0 6px rgba(227,168,87,.55);
+  }
 
   @media (max-width:899px){
     .stage{ flex-direction:column; align-items:center; }
@@ -563,12 +554,15 @@
 
 <div class="stage" id="stage">
   <div class="main-col">
+    <div class="views-badge" id="viewsBadge">
+      <span class="vb-dot"></span><span id="viewsText">–</span>
+    </div>
+
     <div class="term" id="term">
       <div class="term-bar">
         <div class="dot"></div><div class="dot"></div><div class="dot"></div>
         <div class="term-path">guest@qweyns:~</div>
         <div class="term-meta">
-          <span class="views" id="views">–</span>
           <span id="clock">--:--</span>
         </div>
       </div>
@@ -658,19 +652,13 @@
     </div>
   </div>
 
-  <div class="right-col" id="rightCol">
-    <div class="ad-panel" id="adPanel">
-      <button class="ad-close" id="adClose" aria-label="close ad" title="close">×</button>
-      <div class="ad-tag">
-        <span class="blink-dot"></span><span id="adLabelText">ADVERTISEMENT</span>
-        <div class="ad-dots" id="adDots"></div>
-      </div>
-      <div class="ad-slot" id="adSlot"></div>
+  <div class="ad-panel" id="adPanel">
+    <button class="ad-close" id="adClose" aria-label="close ad" title="close">×</button>
+    <div class="ad-tag">
+      <span class="blink-dot"></span><span id="adLabelText">ADVERTISEMENT</span>
+      <div class="ad-dots" id="adDots"></div>
     </div>
-
-    <div class="views-plate" id="viewsPlate">
-      <span class="vp-dot"></span><span id="viewsDesktop">–</span>
-    </div>
+    <div class="ad-slot" id="adSlot"></div>
   </div>
 </div>
 
@@ -870,16 +858,15 @@ tick(); setInterval(tick, 15000);
    suffix text instantly without re-hitting the counter API */
 let lastViewsState = null; // { kind: 'remote'|'local'|'na', value: number }
 function renderViewsText(){
-  const mobileEl = $('#views');
-  const deskEl = $('#viewsDesktop');
+  const el = $('#viewsText');
+  if (!el) return;
   let text = '…';
   if (lastViewsState){
     if (lastViewsState.kind === 'remote') text = t().visitsSuffix(lastViewsState.value);
     else if (lastViewsState.kind === 'local') text = t().visitsLocalSuffix(lastViewsState.value);
     else text = t().visitsNA;
   }
-  if (mobileEl) mobileEl.textContent = text;
-  if (deskEl) deskEl.textContent = text;
+  el.textContent = text;
 }
 
 (async function views(){
