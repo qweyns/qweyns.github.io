@@ -52,6 +52,22 @@
   }
 
   *{box-sizing:border-box;}
+
+  /* custom scrollbar, site-wide */
+  html{
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--bg);
+  }
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-track{ background:var(--bg); }
+  ::-webkit-scrollbar-thumb{
+    background:var(--border);
+    border:2px solid var(--bg);
+    background-clip:padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover{ background:var(--accent); }
+  ::-webkit-scrollbar-corner{ background:var(--bg); }
+
   html,body{height:100%;}
   body{
     margin:0;
@@ -312,7 +328,7 @@
   }
   #console-out.open::-webkit-scrollbar{ width:5px; }
   #console-out.open::-webkit-scrollbar-track{ background:transparent; }
-  #console-out.open::-webkit-scrollbar-thumb{ background:var(--border); border-radius:3px; }
+  #console-out.open::-webkit-scrollbar-thumb{ background:var(--border); border-radius:0; }
   #console-out.open::-webkit-scrollbar-thumb:hover{ background:var(--accent); }
   #console-out .c-line{ white-space:pre-wrap; animation:appear .2s ease; padding:1px 0; }
   #console-out .c-cmd{ color:var(--text); }
@@ -341,12 +357,14 @@
 
   .foot{ text-align:center; font-size:9px; color:var(--text-faint); margin-top:8px; }
   .foot .konami-hint{ opacity:.5; }
+  .foot-utils{ display:flex; align-items:center; justify-content:center; gap:10px; margin-top:6px; }
   .restore-ad-btn{
     background:none; border:none; color:var(--text-faint); font-family:inherit;
     font-size:9px; cursor:pointer; padding:0; margin-left:2px; text-decoration:underline;
     text-underline-offset:2px; transition:color .15s ease;
   }
   .restore-ad-btn:hover{ color:var(--accent); }
+  .foot-utils .restore-ad-btn{ margin-left:0; }
 
   /* ---- right column: ad panel + visit counter plate (desktop only) ---- */
   .right-col{ display:contents; }
@@ -610,6 +628,12 @@
       qweyns · <span id="footText">terminal edition</span> <span class="konami-hint">· ↑↑↓↓←→←→ba</span>
       <button class="restore-ad-btn" id="restoreAdBtn" type="button" hidden>· show promo</button>
     </div>
+    <div class="foot foot-utils">
+      <button class="restore-ad-btn" id="copyLinkBtn" type="button"><span id="copyLinkText">copy link</span></button>
+      <button class="restore-ad-btn" id="achProgressBtn" type="button" title="type 'achievements' in the console">
+        <span id="achProgressText">achievements: 0/8</span>
+      </button>
+    </div>
   </div>
 
   <div class="right-col" id="rightCol">
@@ -710,6 +734,8 @@ const I18N = {
     cWhoami: 'guest — but the links above will introduce you properly',
     cNotFound: (cmd) => `command not found: ${cmd} — try 'help'`,
     gameTitle: 'SMASH THE EGG', gameScore: 'score:', gameTime: 'time:', gameBest: 'best:', gameStart: 'start',
+    copyLink: 'copy link', copyLinkCopied: 'copied!',
+    achProgress: (n, total) => `achievements: ${n}/${total}`,
   },
   ru: {
     roles: ["Java-разработчик", "Minecraft-плагины", "SmashEgg / QweMascots / QweMine"],
@@ -747,6 +773,8 @@ const I18N = {
     cWhoami: 'гость — но ссылки выше представят меня лучше',
     cNotFound: (cmd) => `команда не найдена: ${cmd} — попробуй 'help'`,
     gameTitle: 'РАЗБЕЙ ЯЙЦО', gameScore: 'очки:', gameTime: 'время:', gameBest: 'рекорд:', gameStart: 'старт',
+    copyLink: 'копировать ссылку', copyLinkCopied: 'скопировано!',
+    achProgress: (n, total) => `ачивки: ${n}/${total}`,
   },
 };
 
@@ -764,11 +792,18 @@ const ACHIEVEMENTS = {
 const $ = (s) => document.querySelector(s);
 
 /* current language, persisted; default follows the browser if nothing saved yet */
+/* Always starts in English. The only way to get Russian is the language
+   toggle — once picked, it's remembered for next time via localStorage.
+   (Previously this also guessed from navigator.language, which meant a
+   Russian-locale browser landed on a half-translated page: boot text and
+   ads rendered in Russian immediately, but the plain HTML — about text,
+   badge, placeholder, footer, game titles — stayed English until the
+   toggle was clicked. Simplest fix: one fixed default, and applyLang()
+   now runs once on load so everything is in sync from the first frame.) */
 let currentLang = 'en';
 try{
   const saved = localStorage.getItem('qweyns_lang');
   if (saved === 'en' || saved === 'ru'){ currentLang = saved; }
-  else if (navigator.language && navigator.language.toLowerCase().startsWith('ru')){ currentLang = 'ru'; }
 }catch(e){}
 const t = () => I18N[currentLang];
 
@@ -1211,12 +1246,19 @@ $('#pVol').addEventListener('input', (e) => { audio.volume = e.target.value / 10
 function storageGetGlobal(key){ try { return localStorage.getItem(key); } catch(e){ return null; } }
 function storageSetGlobal(key, val){ try { localStorage.setItem(key, val); } catch(e){} }
 
+const TOTAL_ACHIEVEMENTS = Object.keys(ACHIEVEMENTS).length;
+function updateAchProgress(){
+  const el = $('#achProgressText');
+  if (el) el.textContent = t().achProgress(unlocked.size, TOTAL_ACHIEVEMENTS);
+}
+
 const unlocked = new Set(JSON.parse(storageGetGlobal('qweyns_achievements') || '[]'));
 function unlock(id, descOverride){
   if (unlocked.has(id)) return;
   unlocked.add(id);
   storageSetGlobal('qweyns_achievements', JSON.stringify([...unlocked]));
   successSound();
+  updateAchProgress();
   const meta = ACHIEVEMENTS[id];
   const title = meta[currentLang][0];
   const desc = descOverride !== undefined ? descOverride : meta[currentLang][1];
@@ -1389,6 +1431,8 @@ function applyLang(lang){
   $('#gameTimeLbl').textContent = t().gameTime;
   $('#gameBestLbl').textContent = t().gameBest;
   $('#gameStart').textContent = t().gameStart;
+  $('#copyLinkText').textContent = t().copyLink;
+  updateAchProgress();
 
   startRoleTyping();
   renderViewsText();
@@ -1410,6 +1454,42 @@ $('#soundToggle').addEventListener('click', () => {
   if (soundEnabled) clickSound();
 });
 
+/* copy-link button — Clipboard API with a manual fallback for older browsers */
+$('#copyLinkBtn').addEventListener('click', () => {
+  clickSound();
+  const url = location.href;
+  const showCopied = () => {
+    const el = $('#copyLinkText');
+    el.textContent = t().copyLinkCopied;
+    setTimeout(() => { el.textContent = t().copyLink; }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(showCopied).catch(() => fallbackCopy(url, showCopied));
+  } else {
+    fallbackCopy(url, showCopied);
+  }
+});
+function fallbackCopy(text, done){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try{ document.execCommand('copy'); done(); }catch(e){}
+  document.body.removeChild(ta);
+}
+
+/* achievements progress button — jumps into the console and runs the command */
+$('#achProgressBtn').addEventListener('click', () => {
+  clickSound();
+  input.focus();
+  printLine(`<span class="c-cmd">achievements</span>`);
+  const res = COMMANDS.achievements();
+  if (res) printLine(res.replace(/\n/g,'<br>'));
+});
+
+applyLang(currentLang);
 playBoot();
 </script>
 </body>
