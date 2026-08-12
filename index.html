@@ -63,10 +63,6 @@
     letter-spacing:.02em;
     display:flex;
     align-items:center;
-    /* when the console history grows the terminal taller than the viewport,
-       plain `center` can crop the top (the profile/avatar) out of scroll
-       range entirely — `safe center` keeps it reachable by scrolling up.
-       Browsers that don't understand the value just keep the line above. */
     align-items:safe center;
     justify-content:center;
     min-height:100vh;
@@ -80,6 +76,22 @@
   body, a, button, input{
     cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g fill='%23e4eaef' stroke='%230b0d11' stroke-width='1'><rect x='2' y='2' width='2' height='2'/><rect x='2' y='4' width='2' height='2'/><rect x='2' y='6' width='2' height='2'/><rect x='2' y='8' width='2' height='2'/><rect x='2' y='10' width='2' height='2'/><rect x='4' y='4' width='2' height='2'/><rect x='4' y='6' width='2' height='2'/><rect x='4' y='8' width='2' height='2'/><rect x='6' y='6' width='2' height='2'/><rect x='6' y='8' width='2' height='2'/><rect x='4' y='10' width='2' height='2'/><rect x='6' y='11' width='2' height='2'/></g></svg>") 2 2, auto;
   }
+
+  /* ---- top-right control corner: language + sound ---- */
+  .ctrl-corner{
+    position:fixed; top:14px; right:14px; z-index:10001;
+    display:flex; gap:6px;
+  }
+  .ctrl-btn{
+    min-width:32px; height:26px; padding:0 8px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--panel); border:1px solid var(--border); border-radius:4px;
+    color:var(--text-dim); font-family:inherit; font-size:10px; font-weight:700;
+    cursor:pointer; letter-spacing:.03em;
+    transition:border-color .15s ease, color .15s ease, transform .15s ease, background-color .15s ease;
+  }
+  .ctrl-btn:hover{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); transform:translateY(-1px); }
+  @media (max-width:480px){ .ctrl-corner{ top:8px; right:8px; } .ctrl-btn{ height:24px; font-size:9px; min-width:28px; } }
 
   .bg-grid{
     position:fixed; inset:0;
@@ -117,7 +129,6 @@
     100%{ transform:translateY(-100vh) translateX(var(--drift,20px)); opacity:0; }
   }
 
-  /* mouse trail — single canvas, no DOM churn */
   #trail{ position:fixed; inset:0; pointer-events:none; z-index:9998; }
 
   .stage{
@@ -130,9 +141,6 @@
     width:100%; max-width:560px;
     transition: max-width .5s var(--ease), transform .5s var(--ease);
   }
-  /* when the ad panel is dismissed, let the terminal breathe a little wider and settle center */
-  .stage.ad-closed{ gap:0; }
-  .stage.ad-closed .main-col{ max-width:600px; }
 
   .term{
     position:relative; width:100%;
@@ -159,6 +167,8 @@
   .term-path{ margin-left:8px; font-size:11px; color:var(--text-faint); flex:1; text-align:center; letter-spacing:.04em; }
   .term-meta{ font-size:10px; color:var(--text-faint); font-variant-numeric:tabular-nums; display:flex; gap:10px; }
   .term-meta .views::before{ content:"◆ "; color:var(--accent); }
+  /* on desktop the visit count moves under the ad panel; the term-bar copy is mobile-only */
+  @media (min-width:900px){ .term-meta .views{ display:none; } }
 
   .term-body{ padding:22px 20px 18px; min-height:120px; }
 
@@ -228,15 +238,11 @@
     -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
     -webkit-mask-position:center; mask-position:center;
     transition: background-color .2s ease;
-    /* animation is always attached and simply paused/resumed, so pausing
-       freezes the note mid-rotation instead of snapping back to 0deg */
     animation:spin 2.4s linear infinite;
     animation-play-state:paused;
   }
   .player-note.spin{ animation-play-state:running; }
   @keyframes spin{ from{transform:rotate(0);} to{transform:rotate(360deg);} }
-  /* very old browsers without CSS mask support: fall back to the plain
-     (untinted) icon image instead of an invisible element */
   @supports not ((mask-image: url(a.png)) or (-webkit-mask-image: url(a.png))){
     .player-note{
       background-color:transparent; background-image:url('assets/icons/note.png');
@@ -259,7 +265,6 @@
   .pbtn:active{ transform:translateY(0) scale(.94); }
   .pbtn svg{ width:11px; height:11px; }
 
-  /* custom tooltip for player controls — replaces native title bubble */
   .pbtn .ptip{
     position:absolute; bottom:calc(100% + 7px); left:50%; transform:translateX(-50%) translateY(3px);
     background:var(--panel); border:1px solid var(--border); color:var(--text-dim);
@@ -276,15 +281,11 @@
   .player-bottom{ display:flex; align-items:center; gap:8px; }
   .p-time{ font-size:9px; color:var(--text-faint); width:30px; flex-shrink:0; font-variant-numeric:tabular-nums; }
   .p-time.end{ text-align:right; }
-  .p-bar{
-    flex:1; height:4px; background:var(--border); border-radius:2px; position:relative; cursor:pointer;
-  }
+  .p-bar{ flex:1; height:4px; background:var(--border); border-radius:2px; position:relative; cursor:pointer; }
   .p-bar:hover{ height:6px; }
   .p-fill{ position:absolute; inset:0; width:0%; background:var(--accent); border-radius:2px; transition:width .1s linear; }
   .p-vol{ width:44px; accent-color:var(--accent); }
 
-  /* the input line reads as its own clearly-bounded box now — a subtle panel
-     with padding, so it's obvious where typing happens vs. the history above it */
   .prompt-line{
     display:flex; align-items:center; gap:10px;
     margin-top:14px; padding:9px 11px;
@@ -297,12 +298,10 @@
   .prompt-line input{
     flex:1; min-width:0; background:transparent; border:none; outline:none;
     color:var(--text); font-family:inherit; font-size:12px; caret-color:var(--accent);
-    padding-left:2px; /* small indent so the caret never sits flush against the $ tag */
+    padding-left:2px;
   }
   .prompt-line input::placeholder{ color:var(--text-faint); }
 
-  /* history stays compact and gets its own themed scrollbar instead of the
-     bulky default browser one, so a long command history never eats the layout */
   #console-out{
     font-size:11px; color:var(--text-dim); line-height:1.9;
     max-height:0; overflow:hidden; transition:max-height .3s var(--ease);
@@ -327,7 +326,6 @@
     text-decoration:none; position:relative;
     transition:transform .18s var(--ease), border-color .18s var(--ease), box-shadow .18s var(--ease);
   }
-  /* icons pre-trimmed to equal visual weight; fixed box keeps them reading as the same size */
   .social-btn img{ width:23px; height:23px; display:block; object-fit:contain; }
   .social-btn:hover, .social-btn:focus-visible{
     transform:translateY(-3px); border-color:var(--accent);
@@ -350,7 +348,12 @@
   }
   .restore-ad-btn:hover{ color:var(--accent); }
 
-  /* ---- ad panel ---- */
+  /* ---- right column: ad panel + visit counter plate (desktop only) ---- */
+  .right-col{ display:contents; }
+  @media (min-width:900px){
+    .right-col{ display:flex; flex-direction:column; gap:12px; width:190px; flex-shrink:0; }
+  }
+
   .ad-panel{
     width:190px; flex-shrink:0; background:var(--panel);
     border:1px solid var(--border); padding:12px; position:relative;
@@ -368,8 +371,6 @@
     width:0; padding:12px 0; margin:0; border-color:transparent;
     pointer-events:none;
   }
-  /* single source of truth for "fully dismissed" — no attribute/selector
-     specificity race with the responsive display rules below */
   .ad-panel.is-dismissed{ display:none !important; }
 
   .ad-close{
@@ -388,13 +389,7 @@
   .ad-tag .ad-dot:hover{ transform:scale(1.6); }
   .ad-tag .ad-dot.on{ background:var(--accent); }
 
-  .ad-slot{ touch-action: pan-y; }
-
-  /* height is set dynamically per-ad from JS (each ad's real content height),
-     with min-height only as a floor for very short ads — this is what was
-     clipping the CTA button/body text before when content was taller than
-     the old fixed height */
-  .ad-slot{ position:relative; min-height:100px; transition:height .4s var(--ease); }
+  .ad-slot{ touch-action: pan-y; position:relative; min-height:100px; transition:height .4s var(--ease); }
   .ad-item{
     position:absolute; top:0; left:0; right:0;
     opacity:0; transform:translateY(6px);
@@ -425,10 +420,19 @@
   }
   .ad-cta:hover{ opacity:.85; transform:translateX(2px); }
 
-  @media (min-width:900px){ .ad-panel{ width:190px; display:block; } }
+  /* ---- visit counter plate, desktop only, lives under the ad panel ---- */
+  .views-plate{
+    display:none; align-items:center; gap:8px;
+    background:var(--panel); border:1px solid var(--border); border-radius:6px;
+    padding:9px 12px; font-size:10px; color:var(--text-faint);
+    position:relative; font-variant-numeric:tabular-nums;
+  }
+  .views-plate::before, .views-plate::after{ content:""; position:absolute; width:5px; height:5px; background:var(--accent); opacity:.6; }
+  .views-plate::before{ top:-1px; left:-1px; }
+  .views-plate::after{ bottom:-1px; right:-1px; }
+  .vp-dot{ width:5px; height:5px; background:var(--accent); border-radius:1px; flex-shrink:0; }
+  @media (min-width:900px){ .views-plate{ display:flex; } }
 
-  /* mobile: instead of hiding the ad entirely, stack it as a full-width
-     card below the terminal — compact enough not to dominate the screen */
   @media (max-width:899px){
     .stage{ flex-direction:column; align-items:center; }
     .stage.ad-closed{ gap:16px; }
@@ -440,7 +444,6 @@
     .ad-body{ font-size:10px; margin-bottom:9px; }
   }
 
-  /* ---- achievement toast ---- */
   #toast-wrap{ position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:10000; display:flex; flex-direction:column; gap:8px; align-items:center; }
   .toast{
     background:var(--panel); border:1px solid var(--accent); border-radius:6px;
@@ -454,7 +457,6 @@
   .toast-text{ font-size:11px; color:var(--text); line-height:1.6; }
   .toast-text b{ display:block; color:var(--accent); font-size:9px; letter-spacing:.06em; }
 
-  /* ---- mini game ---- */
   #game-overlay{
     position:fixed; inset:0; background:rgba(11,13,17,.9); z-index:9999;
     display:none; align-items:center; justify-content:center; padding:20px;
@@ -473,10 +475,7 @@
     position:relative; width:100%; height:260px; background:var(--panel-2);
     border:1px dashed var(--border); overflow:hidden; border-radius:6px;
   }
-  .egg{
-    position:absolute; width:28px; height:28px; cursor:pointer; user-select:none;
-    animation:eggpop .3s var(--ease);
-  }
+  .egg{ position:absolute; width:28px; height:28px; cursor:pointer; user-select:none; animation:eggpop .3s var(--ease); }
   @keyframes eggpop{ from{ transform:scale(0);} to{ transform:scale(1);} }
   .game-foot{ display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim); margin-top:10px; }
   .game-start{
@@ -504,7 +503,7 @@
   @media (max-width:480px){
     .term-body{ padding:18px 14px 16px; }
     .name{ font-size:17px; }
-    .term-path{ display:none; } /* decorative label, meta (visits/clock) needs the room more */
+    .term-path{ display:none; }
     .term-meta{ margin-left:auto; }
     .badge{ font-size:9px; padding:3px 6px 3px 5px; }
   }
@@ -517,6 +516,11 @@
 </head>
 
 <body>
+
+<div class="ctrl-corner">
+  <button class="ctrl-btn" id="langToggle" type="button" title="Language / Язык">RU</button>
+  <button class="ctrl-btn" id="soundToggle" type="button" title="Sound / Звук">🔊</button>
+</div>
 
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
@@ -549,7 +553,7 @@
             <div class="id-block">
               <div class="name-row">
                 <span class="name">qweyns</span>
-                <span class="badge b-vacation"><span class="pulse"></span>on vacation</span>
+                <span class="badge b-vacation"><span class="pulse"></span><span id="vacationText">on vacation</span></span>
                 <span class="badge b-java">java</span>
                 <span class="badge b-mc">minecraft</span>
               </div>
@@ -557,7 +561,7 @@
             </div>
           </div>
 
-          <div class="about">
+          <div class="about" id="aboutText">
             <b>Java</b> developer — Minecraft plugins: spawners, mascots, NPCs.
             Repos are public, drop by if you want to look around.
           </div>
@@ -603,32 +607,38 @@
 
     <div class="socials" id="socials"></div>
     <div class="foot">
-      qweyns · terminal edition <span class="konami-hint">· ↑↑↓↓←→←→ba</span>
+      qweyns · <span id="footText">terminal edition</span> <span class="konami-hint">· ↑↑↓↓←→←→ba</span>
       <button class="restore-ad-btn" id="restoreAdBtn" type="button" hidden>· show promo</button>
     </div>
   </div>
 
-  <div class="ad-panel" id="adPanel">
-    <button class="ad-close" id="adClose" aria-label="close ad" title="close">×</button>
-    <div class="ad-tag">
-      <span class="blink-dot"></span>ADVERTISEMENT
-      <div class="ad-dots" id="adDots"></div>
+  <div class="right-col" id="rightCol">
+    <div class="ad-panel" id="adPanel">
+      <button class="ad-close" id="adClose" aria-label="close ad" title="close">×</button>
+      <div class="ad-tag">
+        <span class="blink-dot"></span><span id="adLabelText">ADVERTISEMENT</span>
+        <div class="ad-dots" id="adDots"></div>
+      </div>
+      <div class="ad-slot" id="adSlot"></div>
     </div>
-    <div class="ad-slot" id="adSlot"></div>
+
+    <div class="views-plate" id="viewsPlate">
+      <span class="vp-dot"></span><span id="viewsDesktop">–</span>
+    </div>
   </div>
 </div>
 
 <div id="game-overlay">
   <div class="game-box">
     <div class="game-head">
-      <span>SMASH THE EGG</span>
+      <span id="gameTitleText">SMASH THE EGG</span>
       <button class="game-close" id="gameClose">×</button>
     </div>
     <div id="game-field"></div>
     <div class="game-foot">
-      <span>score: <b id="gScore">0</b></span>
-      <span>time: <b id="gTime">15</b>s</span>
-      <span>best: <b id="gBest">0</b></span>
+      <span><span id="gameScoreLbl">score:</span> <b id="gScore">0</b></span>
+      <span><span id="gameTimeLbl">time:</span> <b id="gTime">15</b>s</span>
+      <span><span id="gameBestLbl">best:</span> <b id="gBest">0</b></span>
     </div>
     <button class="game-start" id="gameStart">start</button>
   </div>
@@ -637,10 +647,12 @@
 <audio id="audio" preload="metadata"></audio>
 
 <script>
+/* ============================================================
+   language-independent config: links, tracks, counter key
+   ============================================================ */
 const CONFIG = {
   username: "qweyns",
   avatar: "https://avatars.githubusercontent.com/u/180417247?v=4",
-  roles: ["Java developer", "Minecraft plugins", "SmashEgg / QweMascots / QweMine"],
   links: [
     { key: "github",   label: "GitHub",   url: "https://github.com/qweyns", icon: "assets/icons/github.png" },
     { key: "telegram", label: "Telegram", url: "https://t.me/iswexi", icon: "assets/icons/telegram.png" },
@@ -651,51 +663,124 @@ const CONFIG = {
     { src: "assets/music/track2.mp3", title: "Холодный дождь", artist: "просто Лера" },
     { src: "assets/music/track3.mp3", title: "Я бы все отдал", artist: "не совладал" },
   ],
-  /* visit counter: tries a free public counter API first (real global count),
-     falls back to a local-only counter (this browser only) if it's unreachable. */
   counter: { namespace: "qweyns-biolink.dev", key: "visits" },
-
-  /* rotating ad slots — self-promo only, no third-party ads. mix of repo + socials. */
-  ads: [
-    {
-      iconMask: null, iconSvg: `<svg viewBox="0 0 8 8" width="34" height="34"><rect x="2" y="0" width="4" height="1"/><rect x="1" y="1" width="6" height="1"/><rect x="0" y="2" width="8" height="4"/><rect x="1" y="6" width="6" height="1"/><rect x="2" y="7" width="4" height="1"/></svg>`,
-      title: "Tired of laggy spawners?",
-      body: "SmashEgg adds spawner mechanics that don't choke your TPS. Free, open source, drop-in plugin.",
-      ctaText: "View repo →",
-      url: "https://github.com/qweyns/SmashEgg",
-    },
-    {
-      iconMask: "assets/icons/github.png",
-      title: "More plugins on GitHub",
-      body: "QweMascots, QweMine and a few other Minecraft plugins live in the repos. All public, all free to poke around.",
-      ctaText: "Open profile →",
-      url: "https://github.com/qweyns",
-    },
-    {
-      iconMask: "assets/icons/telegram.png",
-      title: "Faster reply on Telegram",
-      body: "DMs get answered quicker there than anywhere else. Bug reports, plugin requests, or just to say hi.",
-      ctaText: "Message me →",
-      url: "https://t.me/iswexi",
-    },
-    {
-      iconMask: "assets/icons/discord.png",
-      title: "Hop on Discord",
-      body: "Around most evenings. Good place to talk Minecraft dev, report an issue, or ask about a plugin.",
-      ctaText: "Add on Discord →",
-      url: "https://discord.com/users/986960453286629417",
-    },
-  ],
   adRotateMs: 6500,
+};
+
+/* svg reused across both languages for the first (self-promo) ad slot */
+const SMASHEGG_SVG = '<svg viewBox="0 0 8 8" width="34" height="34"><rect x="2" y="0" width="4" height="1"/><rect x="1" y="1" width="6" height="1"/><rect x="0" y="2" width="8" height="4"/><rect x="1" y="6" width="6" height="1"/><rect x="2" y="7" width="4" height="1"/></svg>';
+
+/* ============================================================
+   I18N — every user-facing string lives here, en + ru
+   ============================================================ */
+const I18N = {
+  en: {
+    roles: ["Java developer", "Minecraft plugins", "SmashEgg / QweMascots / QweMine"],
+    vacation: "on vacation",
+    aboutHTML: '<b>Java</b> developer — Minecraft plugins: spawners, mascots, NPCs. Repos are public, drop by if you want to look around.',
+    bootLines: (dateStr) => [
+      'ssh guest@qweyns.dev',
+      `Last login: ${dateStr}`,
+      'Fetching profile…',
+      'Status: <span class="ok">on vacation 🌴</span>',
+      'Ready.'
+    ],
+    ptipPrev: 'prev track', ptipPlay: 'play', ptipPause: 'pause', ptipNext: 'next track', volTitle: 'volume',
+    promptPlaceholder: "type 'help'",
+    footText: 'terminal edition',
+    adLabel: 'ADVERTISEMENT',
+    restorePromo: '· show promo',
+    visitsSuffix: (n) => `${n} visits`,
+    visitsLocalSuffix: (n) => `${n} visits (local)`,
+    visitsNA: 'visits: n/a',
+    ads: [
+      { iconMask: null, iconSvg: SMASHEGG_SVG, title: "Tired of laggy spawners?", body: "SmashEgg adds spawner mechanics that don't choke your TPS. Free, open source, drop-in plugin.", ctaText: "View repo →", url: "https://github.com/qweyns/SmashEgg" },
+      { iconMask: "assets/icons/github.png", title: "More plugins on GitHub", body: "QweMascots, QweMine and a few other Minecraft plugins live in the repos. All public, all free to poke around.", ctaText: "Open profile →", url: "https://github.com/qweyns" },
+      { iconMask: "assets/icons/telegram.png", title: "Faster reply on Telegram", body: "DMs get answered quicker there than anywhere else. Bug reports, plugin requests, or just to say hi.", ctaText: "Message me →", url: "https://t.me/iswexi" },
+      { iconMask: "assets/icons/discord.png", title: "Hop on Discord", body: "Around most evenings. Good place to talk Minecraft dev, report an issue, or ask about a plugin.", ctaText: "Add on Discord →", url: "https://discord.com/users/986960453286629417" },
+    ],
+    achievementGetLabel: 'ACHIEVEMENT GET!',
+    smashScoreDesc: (score) => `Smashed ${score} eggs in 15 seconds.`,
+    cHelp: 'available: help, links, about, github, telegram, discord, play, achievements, clear',
+    cAbout: 'Java dev. Minecraft plugins: spawners, mascots, NPCs. Currently on vacation.',
+    cOpening: (name) => `opening ${name}…`,
+    cLaunching: 'launching Smash The Egg…',
+    cAchievementsNone: 'none yet — try the konami code, or type "play"',
+    cSudo: 'permission denied: guest is not in the sudoers file. this incident will be reported.',
+    cWhoami: 'guest — but the links above will introduce you properly',
+    cNotFound: (cmd) => `command not found: ${cmd} — try 'help'`,
+    gameTitle: 'SMASH THE EGG', gameScore: 'score:', gameTime: 'time:', gameBest: 'best:', gameStart: 'start',
+  },
+  ru: {
+    roles: ["Java-разработчик", "Minecraft-плагины", "SmashEgg / QweMascots / QweMine"],
+    vacation: "в отпуске",
+    aboutHTML: '<b>Java</b>-разработчик — пишу Minecraft-плагины: спавнеры, маскоты, NPC. Репозитории открыты, заглядывай, если интересно.',
+    bootLines: (dateStr) => [
+      'ssh guest@qweyns.dev',
+      `Последний вход: ${dateStr}`,
+      'Загрузка профиля…',
+      'Статус: <span class="ok">в отпуске 🌴</span>',
+      'Готово.'
+    ],
+    ptipPrev: 'пред. трек', ptipPlay: 'играть', ptipPause: 'пауза', ptipNext: 'след. трек', volTitle: 'громкость',
+    promptPlaceholder: "введи 'help'",
+    footText: 'терминальная версия',
+    adLabel: 'РЕКЛАМА',
+    restorePromo: '· показать промо',
+    visitsSuffix: (n) => `${n} посещений`,
+    visitsLocalSuffix: (n) => `${n} посещений (локально)`,
+    visitsNA: 'посещения: н/д',
+    ads: [
+      { iconMask: null, iconSvg: SMASHEGG_SVG, title: "Задолбали тормозящие спавнеры?", body: "SmashEgg добавляет механику спавнеров, которая не сажает TPS. Бесплатно, open source, просто подключить.", ctaText: "Репозиторий →", url: "https://github.com/qweyns/SmashEgg" },
+      { iconMask: "assets/icons/github.png", title: "Ещё плагины на GitHub", body: "QweMascots, QweMine и другие Minecraft-плагины лежат в репозиториях. Всё в открытом доступе — можно смотреть код.", ctaText: "Открыть профиль →", url: "https://github.com/qweyns" },
+      { iconMask: "assets/icons/telegram.png", title: "В Telegram отвечаю быстрее", body: "Личные сообщения там читаю быстрее всего. Баг-репорты, запросы на плагины или просто привет.", ctaText: "Написать →", url: "https://t.me/iswexi" },
+      { iconMask: "assets/icons/discord.png", title: "Заходи в Discord", body: "Обычно на месте по вечерам. Хорошее место обсудить Minecraft-разработку, багрепорт или вопрос по плагину.", ctaText: "Написать в Discord →", url: "https://discord.com/users/986960453286629417" },
+    ],
+    achievementGetLabel: 'ДОСТИЖЕНИЕ ПОЛУЧЕНО!',
+    smashScoreDesc: (score) => `Разбил ${score} яиц за 15 секунд.`,
+    cHelp: 'доступно: help, links, about, github, telegram, discord, play, achievements, clear',
+    cAbout: 'Java-разработчик. Minecraft-плагины: спавнеры, маскоты, NPC. Сейчас в отпуске.',
+    cOpening: (name) => `открываю ${name}…`,
+    cLaunching: 'запускаю Smash The Egg…',
+    cAchievementsNone: 'пока пусто — попробуй код Konami или введи "play"',
+    cSudo: 'доступ запрещён: guest отсутствует в sudoers. об инциденте сообщено.',
+    cWhoami: 'гость — но ссылки выше представят меня лучше',
+    cNotFound: (cmd) => `команда не найдена: ${cmd} — попробуй 'help'`,
+    gameTitle: 'РАЗБЕЙ ЯЙЦО', gameScore: 'очки:', gameTime: 'время:', gameBest: 'рекорд:', gameStart: 'старт',
+  },
+};
+
+const ACHIEVEMENTS = {
+  lingered:      { en:['Making Yourself at Home', "Spent 5 minutes here. It's a nice terminal, isn't it."], ru:['Освоился', 'Провёл здесь 5 минут. Неплохой терминал, да?'] },
+  all_socials:   { en:['Well Connected', 'Checked out every social link.'], ru:['Хорошие связи', 'Открыл все ссылки на соцсети.'] },
+  full_listen:   { en:['Full Listen', 'Stuck around for an entire track.'], ru:['Дослушал', 'Прослушал трек целиком.'] },
+  konami:        { en:['Konami Code', 'You really typed that in. Respect.'], ru:['Код Konami', 'Ты правда это ввёл. Уважение.'] },
+  found_game:    { en:['Secret Found', "You typed 'play' — found the mini-game."], ru:['Секрет найден', "Ввёл 'play' — нашёл мини-игру."] },
+  smashegg_best: { en:['New High Score', ''], ru:['Новый рекорд', ''] },
+  smashegg_pro:  { en:['Egg Smasher Pro', 'Scored 15+ in Smash The Egg.'], ru:['Профи по яйцам', 'Набрал 15+ очков в Smash The Egg.'] },
+  sudo:          { en:['Nice Try', 'guest tried to sudo. Denied, but noted.'], ru:['Хорошая попытка', 'guest попытался sudo. Отказано, но замечено.'] },
 };
 
 const $ = (s) => document.querySelector(s);
 
+/* current language, persisted; default follows the browser if nothing saved yet */
+let currentLang = 'en';
+try{
+  const saved = localStorage.getItem('qweyns_lang');
+  if (saved === 'en' || saved === 'ru'){ currentLang = saved; }
+  else if (navigator.language && navigator.language.toLowerCase().startsWith('ru')){ currentLang = 'ru'; }
+}catch(e){}
+const t = () => I18N[currentLang];
+
 /* ============================================================
-   tiny synthesized sounds — no audio files needed
+   sound on/off — persisted, affects every synthesized beep
    ============================================================ */
+let soundEnabled = true;
+try{ soundEnabled = localStorage.getItem('qweyns_sound') !== '0'; }catch(e){}
+
 let actx;
 function beep(freq, dur, vol, type){
+  if (!soundEnabled) return;
   try{
     actx = actx || new (window.AudioContext || window.webkitAudioContext)();
     const osc = actx.createOscillator();
@@ -722,37 +807,48 @@ function tick(){
 }
 tick(); setInterval(tick, 15000);
 
+/* cache the last known count so switching language re-renders the
+   suffix text instantly without re-hitting the counter API */
+let lastViewsState = null; // { kind: 'remote'|'local'|'na', value: number }
+function renderViewsText(){
+  const mobileEl = $('#views');
+  const deskEl = $('#viewsDesktop');
+  let text = '…';
+  if (lastViewsState){
+    if (lastViewsState.kind === 'remote') text = t().visitsSuffix(lastViewsState.value);
+    else if (lastViewsState.kind === 'local') text = t().visitsLocalSuffix(lastViewsState.value);
+    else text = t().visitsNA;
+  }
+  if (mobileEl) mobileEl.textContent = text;
+  if (deskEl) deskEl.textContent = text;
+}
+
 (async function views(){
-  const el = $('#views');
   const { namespace, key } = CONFIG.counter;
   const counterKey = `${namespace}_${key}`;
   const seenFlag = 'qweyns_bio_counted_device';
 
-  // this device already bumped the global counter once before — just read
-  // the current value instead of incrementing it again on every reload
   let alreadyCounted = false;
-  try{ alreadyCounted = localStorage.getItem(seenFlag) === '1'; }catch(e){ /* ignore */ }
+  try{ alreadyCounted = localStorage.getItem(seenFlag) === '1'; }catch(e){}
 
   try{
     const endpoint = alreadyCounted ? 'get' : 'hit';
     const res = await fetch(`https://countapi.mileshilliard.com/api/v1/${endpoint}/${counterKey}`);
     if (!res.ok) throw new Error('bad response');
     const data = await res.json();
-    el.textContent = `${data.value} visits`;
-    if (!alreadyCounted){
-      try{ localStorage.setItem(seenFlag, '1'); }catch(e){ /* ignore */ }
-    }
+    lastViewsState = { kind: 'remote', value: data.value };
+    if (!alreadyCounted){ try{ localStorage.setItem(seenFlag, '1'); }catch(e){} }
   }catch(e){
-    // offline fallback: local-only count for this browser, also only bumped once
     try{
       const KEY = 'qweyns_bio_views_local';
       let n = parseInt(localStorage.getItem(KEY) || '0', 10);
       if (!alreadyCounted){ n += 1; localStorage.setItem(KEY, String(n)); localStorage.setItem(seenFlag, '1'); }
-      el.textContent = `${n || 1} visits (local)`;
+      lastViewsState = { kind: 'local', value: n || 1 };
     }catch(e2){
-      el.textContent = 'visits: n/a';
+      lastViewsState = { kind: 'na', value: 0 };
     }
   }
+  renderViewsText();
 })();
 
 /* ============================================================
@@ -775,9 +871,7 @@ tick(); setInterval(tick, 15000);
   holder.appendChild(frag);
 })();
 
-/* ============================================================
-   mouse trail — canvas based (one element, no per-frame DOM writes)
-   ============================================================ */
+/* mouse trail — canvas based */
 (function mouseTrail(){
   const canvas = $('#trail');
   const ctx = canvas.getContext('2d');
@@ -795,7 +889,6 @@ tick(); setInterval(tick, 15000);
   }
   resize();
   window.addEventListener('resize', resize, { passive:true });
-
   if (reduced) return;
 
   let last = 0;
@@ -824,7 +917,7 @@ tick(); setInterval(tick, 15000);
   }
 })();
 
-/* 3D tilt on terminal — rAF batched to avoid layout thrash */
+/* 3D tilt on terminal */
 (function tilt(){
   const term = $('#term');
   let targetX = 0, targetY = 0, curX = 0, curY = 0, raf = null;
@@ -853,7 +946,7 @@ tick(); setInterval(tick, 15000);
 })();
 
 /* ============================================================
-   social icons — real uploaded artwork, trimmed to equal visual size
+   social icons
    ============================================================ */
 (function renderSocials(){
   const wrap = $('#socials');
@@ -871,8 +964,9 @@ tick(); setInterval(tick, 15000);
 })();
 
 /* ============================================================
-   rotating ad panel — self-promo slots, closeable
+   rotating ad panel — self-promo slots, closeable, localized
    ============================================================ */
+let rerenderCurrentAd = () => {};
 (function ads(){
   const panel = $('#adPanel');
   const slot = $('#adSlot');
@@ -881,22 +975,10 @@ tick(); setInterval(tick, 15000);
   const stage = $('#stage');
   let idx = 0, timer = null;
 
-  // localStorage can throw (private-mode Safari, disabled storage, etc.) —
-  // never let a storage failure break the ad panel or the rest of the page.
-  function storageGet(key){
-    try { return localStorage.getItem(key); } catch (e) { return null; }
-  }
-  function storageSet(key, val){
-    try { localStorage.setItem(key, val); } catch (e) { /* ignore — non-critical */ }
-  }
-  function storageRemove(key){
-    try { localStorage.removeItem(key); } catch (e) { /* ignore — non-critical */ }
-  }
+  function storageGet(key){ try { return localStorage.getItem(key); } catch (e) { return null; } }
+  function storageSet(key, val){ try { localStorage.setItem(key, val); } catch (e) {} }
+  function storageRemove(key){ try { localStorage.removeItem(key); } catch (e) {} }
 
-  // v2: older site versions had no way to bring the ad back once dismissed,
-  // so anyone who closed it there was stuck with it gone forever. Moving to
-  // a new storage key resets that one time; the "show promo" restore button
-  // (added below) means it's never a dead end again going forward.
   storageRemove('qweyns_ad_closed');
   const AD_CLOSED_KEY = 'qweyns_ad_closed_v2';
 
@@ -925,7 +1007,7 @@ tick(); setInterval(tick, 15000);
 
   function renderDots(){
     dotsWrap.innerHTML = '';
-    CONFIG.ads.forEach((_, i) => {
+    t().ads.forEach((_, i) => {
       const d = document.createElement('span');
       d.className = 'ad-dot' + (i === idx ? ' on' : '');
       d.addEventListener('click', () => { clickSound(); stopRotation(); show(i); startRotation(); });
@@ -937,18 +1019,13 @@ tick(); setInterval(tick, 15000);
   function show(i){
     idx = i;
     const prevEl = currentEl;
-    const el = renderItem(CONFIG.ads[idx]);
+    const el = renderItem(t().ads[idx]);
     slot.appendChild(el);
     currentEl = el;
 
-    // each ad's text length differs, so measure its real content height and
-    // resize the slot to match — this is what used to clip the CTA button
-    // when a card's text ran longer than the old fixed height.
     const targetH = el.scrollHeight;
     slot.style.height = targetH + 'px';
 
-    // true crossfade: new card fades/slides in while the old one fades/slides out,
-    // both present at once instead of an instant swap.
     requestAnimationFrame(() => {
       el.classList.add('active');
       if (prevEl){
@@ -960,13 +1037,10 @@ tick(); setInterval(tick, 15000);
     renderDots();
   }
 
-  function next(){ show((idx + 1) % CONFIG.ads.length); }
-  function prev(){ show((idx - 1 + CONFIG.ads.length) % CONFIG.ads.length); }
+  function next(){ show((idx + 1) % t().ads.length); }
+  function prev(){ show((idx - 1 + t().ads.length) % t().ads.length); }
 
-  function startRotation(){
-    stopRotation();
-    timer = setInterval(next, CONFIG.adRotateMs);
-  }
+  function startRotation(){ stopRotation(); timer = setInterval(next, CONFIG.adRotateMs); }
   function stopRotation(){ if (timer) clearInterval(timer); timer = null; }
 
   function openAds(){
@@ -977,26 +1051,21 @@ tick(); setInterval(tick, 15000);
     startRotation();
   }
 
-  if (!closedBefore){
-    show(0);
-    startRotation();
-  }
+  if (!closedBefore){ show(0); startRotation(); }
   panel.addEventListener('mouseenter', stopRotation);
   panel.addEventListener('mouseleave', () => { if (!panel.classList.contains('is-dismissed')) startRotation(); });
 
-  // swipe to flip through ads on touch devices — auto-rotation alone doesn't
-  // give someone on mobile a way to look at a specific card on demand.
   let touchX = 0, touchY = 0, touchActive = false;
   slot.addEventListener('touchstart', (e) => {
-    const t = e.touches[0];
-    touchX = t.clientX; touchY = t.clientY; touchActive = true;
+    const tt = e.touches[0];
+    touchX = tt.clientX; touchY = tt.clientY; touchActive = true;
     stopRotation();
   }, { passive:true });
   slot.addEventListener('touchend', (e) => {
     if (!touchActive) return;
     touchActive = false;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - touchX, dy = t.clientY - touchY;
+    const tt = e.changedTouches[0];
+    const dx = tt.clientX - touchX, dy = tt.clientY - touchY;
     if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy) * 1.4){
       clickSound();
       if (dx < 0) next(); else prev();
@@ -1021,28 +1090,25 @@ tick(); setInterval(tick, 15000);
       openAds();
     });
   }
+
+  /* re-render the currently visible ad in the new language, keeping rotation position */
+  rerenderCurrentAd = () => { show(idx); };
 })();
 
 /* ============================================================
    boot sequence
    ============================================================ */
-const bootLines = [
-  'ssh guest@qweyns.dev',
-  `Last login: ${new Date().toDateString()}`,
-  'Fetching profile…',
-  'Status: <span class="ok">on vacation 🌴</span>',
-  'Ready.'
-];
 function playBoot(){
   const el = $('#boot');
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lines = t().bootLines(new Date().toDateString());
   if (reduced){ revealProfile(); return; }
   let i = 0;
   function next(){
-    if (i >= bootLines.length){ setTimeout(revealProfile, 250); return; }
+    if (i >= lines.length){ setTimeout(revealProfile, 250); return; }
     const line = document.createElement('div');
     line.className = 'line';
-    line.innerHTML = (i === 0 ? '<span style="color:var(--text-dim)">$ </span>' : '') + bootLines[i];
+    line.innerHTML = (i === 0 ? '<span style="color:var(--text-dim)">$ </span>' : '') + lines[i];
     el.appendChild(line);
     i++;
     setTimeout(next, i === 1 ? 250 : 180);
@@ -1054,12 +1120,16 @@ function revealProfile(){
   $('#profile').classList.add('show');
   startRoleTyping();
 }
+
+let roleTypingToken = 0;
 function startRoleTyping(){
+  const myToken = ++roleTypingToken;
   const el = $('#role');
-  const roles = CONFIG.roles;
   let ri = 0, ci = 0, deleting = false;
   function frame(){
-    const word = roles[ri];
+    if (myToken !== roleTypingToken) return; // superseded by a language switch
+    const roles = t().roles;
+    const word = roles[ri % roles.length];
     if (!deleting){ ci++; if (ci > word.length){ deleting = true; setTimeout(frame, 1400); return; } }
     else { ci--; if (ci < 0){ deleting = false; ri = (ri + 1) % roles.length; ci = 0; } }
     el.innerHTML = word.slice(0, ci) + '<span class="cursor-blink"></span>';
@@ -1073,24 +1143,22 @@ function startRoleTyping(){
    ============================================================ */
 const audio = $('#audio');
 let trackIndex = 0, isPlaying = false, audioErrorStreak = 0;
-function fmt(t){ if (!isFinite(t)) return '0:00'; const m = Math.floor(t/60), s = Math.floor(t%60); return `${m}:${String(s).padStart(2,'0')}`; }
+function fmt(tm){ if (!isFinite(tm)) return '0:00'; const m = Math.floor(tm/60), s = Math.floor(tm%60); return `${m}:${String(s).padStart(2,'0')}`; }
 function loadTrack(i, autoplay){
   trackIndex = (i + CONFIG.tracks.length) % CONFIG.tracks.length;
-  const t = CONFIG.tracks[trackIndex];
+  const tr = CONFIG.tracks[trackIndex];
   const meta = $('.player-meta');
 
-  // functional audio state changes synchronously — nothing here waits on
-  // the cosmetic fade below, so play() always acts on the correct source
-  audio.src = t.src;
+  audio.src = tr.src;
   $('#pFill').style.width = '0%';
   $('#pCur').textContent = '0:00';
   if (autoplay) audio.play().catch(()=>{});
 
-  // title/artist swap gets a small fade purely for visual polish
   meta.style.opacity = '0';
   setTimeout(() => {
-    $('#pTitle').textContent = t.title;
-    $('#pArtist').textContent = t.artist;
+    const titleEl = $('#pTitle'), artistEl = $('#pArtist');
+    titleEl.textContent = tr.title; titleEl.lang = 'ru';
+    artistEl.textContent = tr.artist; artistEl.lang = 'ru';
     meta.style.opacity = '1';
   }, 120);
 }
@@ -1099,7 +1167,7 @@ function setPlaying(p){
   $('#pPlay').innerHTML = (p
     ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>'
     : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>')
-    + `<span class="ptip">${p ? 'pause' : 'play'}</span>`;
+    + `<span class="ptip">${p ? t().ptipPause : t().ptipPlay}</span>`;
   $('#playerNote').classList.toggle('spin', p);
 }
 loadTrack(0, false);
@@ -1111,7 +1179,7 @@ audio.addEventListener('play', () => setPlaying(true));
 audio.addEventListener('pause', () => setPlaying(false));
 audio.addEventListener('ended', () => {
   audioErrorStreak = 0;
-  unlock('full_listen', 'Full Listen', 'Stuck around for an entire track.');
+  unlock('full_listen');
   loadTrack(trackIndex+1, true);
 });
 audio.addEventListener('timeupdate', () => {
@@ -1119,8 +1187,6 @@ audio.addEventListener('timeupdate', () => {
   $('#pDur').textContent = fmt(audio.duration);
   $('#pFill').style.width = (audio.duration ? (audio.currentTime/audio.duration*100) : 0) + '%';
 });
-// a missing/broken mp3 file shouldn't just go silent — surface it, then
-// try the next track once instead of getting stuck forever.
 audio.addEventListener('error', () => {
   $('#pTitle').textContent = 'Track unavailable';
   $('#pArtist').textContent = 'skipping to next…';
@@ -1143,35 +1209,35 @@ $('#pVol').addEventListener('input', (e) => { audio.volume = e.target.value / 10
    achievements / toasts
    ============================================================ */
 function storageGetGlobal(key){ try { return localStorage.getItem(key); } catch(e){ return null; } }
-function storageSetGlobal(key, val){ try { localStorage.setItem(key, val); } catch(e){ /* ignore */ } }
+function storageSetGlobal(key, val){ try { localStorage.setItem(key, val); } catch(e){} }
 
 const unlocked = new Set(JSON.parse(storageGetGlobal('qweyns_achievements') || '[]'));
-function unlock(id, title, desc){
+function unlock(id, descOverride){
   if (unlocked.has(id)) return;
   unlocked.add(id);
   storageSetGlobal('qweyns_achievements', JSON.stringify([...unlocked]));
   successSound();
+  const meta = ACHIEVEMENTS[id];
+  const title = meta[currentLang][0];
+  const desc = descOverride !== undefined ? descOverride : meta[currentLang][1];
   const wrap = $('#toast-wrap');
-  const t = document.createElement('div');
-  t.className = 'toast';
-  t.innerHTML = `<div class="toast-icon"></div><div class="toast-text"><b>ACHIEVEMENT GET!</b>${title}<br><span style="color:var(--text-faint)">${desc}</span></div>`;
-  wrap.appendChild(t);
-  setTimeout(() => t.remove(), 3600);
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<div class="toast-icon"></div><div class="toast-text"><b>${t().achievementGetLabel}</b>${title}<br><span style="color:var(--text-faint)">${desc}</span></div>`;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3600);
 }
 
-/* spent 5+ minutes on the page */
-setTimeout(() => unlock('lingered', 'Making Yourself at Home', "Spent 5 minutes here. It's a nice terminal, isn't it."), 5 * 60 * 1000);
+setTimeout(() => unlock('lingered'), 5 * 60 * 1000);
 
-/* clicked every social link at least once */
 const openedSocials = new Set();
 function trackSocialOpen(key){
   openedSocials.add(key);
   if (openedSocials.size >= CONFIG.links.length){
-    unlock('all_socials', 'Well Connected', 'Checked out every social link.');
+    unlock('all_socials');
   }
 }
 
-/* konami code easter egg */
 (function konami(){
   const seq = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
   let pos = 0;
@@ -1181,7 +1247,7 @@ function trackSocialOpen(key){
       pos++;
       if (pos === seq.length){
         pos = 0;
-        unlock('konami', 'Konami Code', 'You really typed that in. Respect.');
+        unlock('konami');
         openGame();
       }
     } else {
@@ -1200,9 +1266,6 @@ let gameTimer = null, gameActive = false, score = 0, timeLeft = GAME_DURATION;
 const bestKey = 'qweyns_smashegg_best';
 $('#gBest').textContent = storageGetGlobal(bestKey) || '0';
 
-// reopening the overlay after a finished (or aborted) round was leaving the
-// previous round's leftover score/time on screen until "start" was pressed —
-// reset the display every time the overlay opens, not just on start
 function resetGameDisplay(){
   score = 0; timeLeft = GAME_DURATION;
   $('#gScore').textContent = score;
@@ -1213,28 +1276,18 @@ function closeGame(){ gameOverlay.classList.remove('open'); stopGame(); }
 $('#gameClose').addEventListener('click', () => { clickSound(); closeGame(); });
 $('#gameStart').addEventListener('click', () => { clickSound(); startGame(); });
 
-function stopGame(){
-  gameActive = false;
-  clearInterval(gameTimer);
-  gameField.innerHTML = '';
-}
+function stopGame(){ gameActive = false; clearInterval(gameTimer); gameField.innerHTML = ''; }
 function startGame(){
   stopGame();
   score = 0; timeLeft = GAME_DURATION; gameActive = true;
   $('#gScore').textContent = score;
   $('#gTime').textContent = timeLeft;
   spawnEgg();
-  // timestamp-based countdown instead of naive `timeLeft--` per tick —
-  // setInterval drifts (background tabs, slow devices), so counting down
-  // by subtraction alone can visibly desync from real elapsed time.
   const endAt = Date.now() + GAME_DURATION * 1000;
   gameTimer = setInterval(() => {
     const remainingMs = endAt - Date.now();
     const secs = Math.max(0, Math.ceil(remainingMs / 1000));
-    if (secs !== timeLeft){
-      timeLeft = secs;
-      $('#gTime').textContent = timeLeft;
-    }
+    if (secs !== timeLeft){ timeLeft = secs; $('#gTime').textContent = timeLeft; }
     if (remainingMs <= 0) endGame();
   }, 100);
 }
@@ -1264,9 +1317,9 @@ function endGame(){
   if (score > best){
     storageSetGlobal(bestKey, String(score));
     $('#gBest').textContent = score;
-    unlock('smashegg_best', 'New High Score', `Smashed ${score} eggs in 15 seconds.`);
+    unlock('smashegg_best', t().smashScoreDesc(score));
   }
-  if (score >= 15) unlock('smashegg_pro', 'Egg Smasher Pro', 'Scored 15+ in Smash The Egg.');
+  if (score >= 15) unlock('smashegg_pro');
 }
 
 /* ============================================================
@@ -1283,17 +1336,17 @@ function printLine(html){
   out.scrollTop = out.scrollHeight;
 }
 const COMMANDS = {
-  help: () => `available: help, links, about, github, telegram, discord, play, achievements, clear`,
+  help: () => t().cHelp,
   links: () => CONFIG.links.map(l => `${l.label.padEnd(9,' ')} ${l.url}`).join('\n'),
-  about: () => `Java dev. Minecraft plugins: spawners, mascots, NPCs. Currently on vacation.`,
-  github: () => { window.open(CONFIG.links.find(l=>l.key==='github').url, '_blank'); return 'opening github…'; },
-  telegram: () => { window.open(CONFIG.links.find(l=>l.key==='telegram').url, '_blank'); return 'opening telegram…'; },
-  discord: () => { window.open(CONFIG.links.find(l=>l.key==='discord').url, '_blank'); return 'opening discord…'; },
-  play: () => { openGame(); unlock('found_game', 'Secret Found', "You typed 'play' — found the mini-game."); return 'launching Smash The Egg…'; },
-  achievements: () => unlocked.size ? [...unlocked].join(', ') : 'none yet — try the konami code, or type "play"',
+  about: () => t().cAbout,
+  github: () => { window.open(CONFIG.links.find(l=>l.key==='github').url, '_blank'); trackSocialOpen('github'); return t().cOpening('github'); },
+  telegram: () => { window.open(CONFIG.links.find(l=>l.key==='telegram').url, '_blank'); trackSocialOpen('telegram'); return t().cOpening('telegram'); },
+  discord: () => { window.open(CONFIG.links.find(l=>l.key==='discord').url, '_blank'); trackSocialOpen('discord'); return t().cOpening('discord'); },
+  play: () => { openGame(); unlock('found_game'); return t().cLaunching; },
+  achievements: () => unlocked.size ? [...unlocked].map(id => ACHIEVEMENTS[id][currentLang][0]).join(', ') : t().cAchievementsNone,
   clear: () => { out.innerHTML=''; out.classList.remove('open'); return null; },
-  sudo: () => { unlock('sudo', 'Nice Try', "guest tried to sudo. Denied, but noted."); return `permission denied: guest is not in the sudoers file. this incident will be reported.`; },
-  whoami: () => `guest — but the links above will introduce you properly`,
+  sudo: () => { unlock('sudo'); return t().cSudo; },
+  whoami: () => t().cWhoami,
 };
 input.addEventListener('keydown', (e) => {
   keySound();
@@ -1307,9 +1360,54 @@ input.addEventListener('keydown', (e) => {
     const res = handler();
     if (res) printLine(res.replace(/\n/g,'<br>'));
   } else {
-    printLine(`command not found: ${cmd} — try 'help'`);
+    printLine(t().cNotFound(cmd));
   }
   input.value = '';
+});
+
+/* ============================================================
+   language + sound toggles
+   ============================================================ */
+function applyLang(lang){
+  currentLang = lang;
+  try{ localStorage.setItem('qweyns_lang', lang); }catch(e){}
+  document.documentElement.lang = lang;
+  $('#langToggle').textContent = lang === 'en' ? 'RU' : 'EN';
+
+  $('#aboutText').innerHTML = t().aboutHTML;
+  $('#vacationText').textContent = t().vacation;
+  $('#pPrev .ptip').textContent = t().ptipPrev;
+  $('#pNext .ptip').textContent = t().ptipNext;
+  $('#pPlay .ptip').textContent = isPlaying ? t().ptipPause : t().ptipPlay;
+  $('#pVol').title = t().volTitle;
+  $('#cmdInput').placeholder = t().promptPlaceholder;
+  $('#footText').textContent = t().footText;
+  $('#adLabelText').textContent = t().adLabel;
+  $('#restoreAdBtn').textContent = t().restorePromo;
+  $('#gameTitleText').textContent = t().gameTitle;
+  $('#gameScoreLbl').textContent = t().gameScore;
+  $('#gameTimeLbl').textContent = t().gameTime;
+  $('#gameBestLbl').textContent = t().gameBest;
+  $('#gameStart').textContent = t().gameStart;
+
+  startRoleTyping();
+  renderViewsText();
+  rerenderCurrentAd();
+}
+$('#langToggle').addEventListener('click', () => {
+  clickSound();
+  applyLang(currentLang === 'en' ? 'ru' : 'en');
+});
+// set the button's initial label to the *other* language before first paint-relevant interaction
+$('#langToggle').textContent = currentLang === 'en' ? 'RU' : 'EN';
+
+function applySoundIcon(){ $('#soundToggle').textContent = soundEnabled ? '🔊' : '🔇'; }
+applySoundIcon();
+$('#soundToggle').addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  try{ localStorage.setItem('qweyns_sound', soundEnabled ? '1' : '0'); }catch(e){}
+  applySoundIcon();
+  if (soundEnabled) clickSound();
 });
 
 playBoot();
