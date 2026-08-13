@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>404 — qweyns</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#0b0d11">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
 
 <style>
   @font-face{
@@ -14,12 +16,21 @@
     src:url('assets/fonts/MinecraftFiveBold.otf') format('opentype');
     font-weight:700; font-style:normal; font-display:swap;
   }
+
   :root{
-    --bg:#0b0d11; --panel:#12151c; --panel-2:#171b23;
-    --border:#2a3138; --border-soft:#232830;
-    --text:#e4eaef; --text-dim:#93a8b5; --text-faint:#5b6d78;
-    --accent:#bef264;
+    --bg:            #0b0d11;
+    --panel:         #12151c;
+    --panel-2:       #171b23;
+    --border:        #2a3138;
+    --border-soft:   #232830;
+    --text:          #e4eaef;
+    --text-dim:      #93a8b5;
+    --text-faint:    #5b6d78;
+    --accent:        #bef264;
+    --accent-soft:   rgba(190,242,100,.14);
+    --ease: cubic-bezier(.22,.85,.32,1);
   }
+
   *{box-sizing:border-box;}
   html,body{height:100%;}
   body{
@@ -29,6 +40,12 @@
     display:flex; align-items:center; justify-content:center;
     min-height:100vh; padding:24px; position:relative; overflow-x:hidden;
   }
+  html{ scrollbar-width:thin; scrollbar-color:var(--border) var(--bg); }
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-track{ background:var(--bg); }
+  ::-webkit-scrollbar-thumb{ background:var(--border); border:2px solid var(--bg); background-clip:padding-box; }
+  ::-webkit-scrollbar-thumb:hover{ background:var(--accent); }
+
   .bg-grid{
     position:fixed; inset:0;
     background-image:
@@ -43,53 +60,155 @@
     background:radial-gradient(circle, rgba(190,242,100,.08) 0%, transparent 65%);
     filter:blur(10px); pointer-events:none;
   }
+  .bg-vignette{
+    position:fixed; inset:0;
+    background:radial-gradient(ellipse 90% 80% at 50% 40%, transparent 55%, rgba(0,0,0,.55) 100%);
+    pointer-events:none;
+  }
+
   .term{
     position:relative; width:100%; max-width:480px;
     background:var(--panel); border:1px solid var(--border); border-radius:10px;
-    box-shadow:0 30px 80px -20px rgba(0,0,0,.6);
+    box-shadow:0 30px 80px -20px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.02) inset;
     overflow:hidden;
+    animation:rise-in .6s var(--ease) both;
   }
+  @keyframes rise-in{ from{ opacity:0; transform:translateY(18px) scale(.97); } to{ opacity:1; transform:translateY(0) scale(1); } }
+
   .term-bar{
     display:flex; align-items:center; gap:8px; padding:11px 14px;
     background:var(--panel-2); border-bottom:1px solid var(--border);
   }
   .dot{ width:10px; height:10px; border-radius:2px; background:#3a424c; }
-  .term-path{ margin-left:8px; font-size:11px; color:var(--text-faint); flex:1; text-align:center; }
-  .term-body{ padding:26px 22px; font-size:12.5px; line-height:2; color:var(--text-dim); }
-  .term-body .err{ color:#ef7373; }
-  .term-body .ok{ color:var(--accent); }
-  .term-body b{ color:var(--text); }
-  .cursor{ display:inline-block; width:7px; background:var(--accent); animation:blink 1s step-end infinite; }
-  @keyframes blink{ 50%{ opacity:0; } }
-  a.home-link{
-    display:inline-flex; align-items:center; gap:6px; margin-top:8px;
-    color:var(--bg); background:var(--accent); text-decoration:none;
-    padding:8px 12px; font-size:11px; font-weight:700;
+  .term-path{ margin-left:8px; font-size:11px; color:var(--text-faint); flex:1; text-align:center; letter-spacing:.04em; }
+  .term-tag{
+    font-size:9px; font-weight:700; color:#ef7373; background:rgba(239,115,115,.1);
+    border:1px solid #5a3232; padding:2px 6px; border-radius:3px; letter-spacing:.05em;
   }
-  a.home-link:hover{ opacity:.85; }
+
+  .term-body{ padding:26px 24px 24px; text-align:center; }
+
+  #boot{ font-size:11.5px; line-height:1.9; color:var(--text-dim); text-align:left; margin-bottom:18px; min-height:20px; }
+  #boot .line{ opacity:0; animation:appear .3s forwards; }
+  #boot .err{ color:#ef7373; }
+  @keyframes appear{ to{opacity:1;} }
+
+  #content{ display:none; }
+  #content.show{ display:block; animation:appear .45s ease both; }
+
+  .code404{
+    font-size:56px; font-weight:700; color:var(--accent); line-height:1;
+    letter-spacing:.04em; margin-bottom:10px;
+    text-shadow:0 0 24px rgba(190,242,100,.25);
+  }
+  .code404 .cursor{
+    display:inline-block; width:9px; height:.85em; background:var(--accent);
+    margin-left:4px; vertical-align:-2px; animation:blink 1s step-end infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .msg{ font-size:12.5px; color:var(--text-dim); line-height:1.8; margin-bottom:22px; }
+  .msg b{ color:var(--text); font-weight:700; }
+  .path-echo{
+    display:inline-block; margin-top:6px; font-size:10.5px; color:var(--text-faint);
+    background:var(--panel-2); border:1px solid var(--border); border-radius:4px;
+    padding:3px 8px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+
+  .home-cta{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--accent); color:var(--bg); text-decoration:none;
+    font-size:12px; font-weight:700; padding:10px 18px; border-radius:6px;
+    transition:opacity .15s ease, transform .15s ease;
+  }
+  .home-cta:hover{ opacity:.85; transform:translateY(-1px); }
+
+  .quick-links{
+    display:flex; gap:10px; justify-content:center; margin-top:22px;
+    padding-top:18px; border-top:1px dashed var(--border);
+  }
+  .quick-links a{
+    width:38px; height:38px; display:flex; align-items:center; justify-content:center;
+    background:var(--panel-2); border:1px solid var(--border); border-radius:6px;
+    transition:transform .15s var(--ease), border-color .15s var(--ease);
+  }
+  .quick-links a:hover{ transform:translateY(-2px); border-color:var(--accent); }
+  .quick-links img{ width:19px; height:19px; }
+
+  .foot-note{ margin-top:16px; font-size:9px; color:var(--text-faint); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; }
+  }
+  @media (max-width:480px){
+    .term-body{ padding:22px 18px 20px; }
+    .code404{ font-size:44px; }
+  }
 </style>
 </head>
 <body>
+
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
+<div class="bg-vignette"></div>
 
 <div class="term">
   <div class="term-bar">
     <div class="dot"></div><div class="dot"></div><div class="dot"></div>
     <div class="term-path">guest@qweyns:~</div>
+    <div class="term-tag">404</div>
   </div>
+
   <div class="term-body">
-    <div>$ cd <b id="path"></b></div>
-    <div class="err">bash: cd: no such file or directory</div>
-    <div>$ ls -la</div>
-    <div>404 <span class="ok">— page not found</span></div>
-    <div>&nbsp;</div>
-    <a class="home-link" href="/">cd ~ &nbsp;<span class="cursor">&nbsp;</span></a>
+    <div id="boot"></div>
+
+    <div id="content">
+      <div class="code404">404<span class="cursor"></span></div>
+      <div class="msg">
+        <b>This page doesn't exist.</b><br>
+        Wrong link, or it moved. Either way, it's not here.
+        <div class="path-echo" id="pathEcho"></div>
+      </div>
+      <a class="home-cta" href="/">← back to qweyns.github.io</a>
+
+      <div class="quick-links">
+        <a href="https://github.com/qweyns" target="_blank" rel="noopener" aria-label="GitHub"><img src="assets/icons/github.png" alt=""></a>
+        <a href="https://t.me/iswexi" target="_blank" rel="noopener" aria-label="Telegram"><img src="assets/icons/telegram.png" alt=""></a>
+        <a href="https://discord.com/users/986960453286629417" target="_blank" rel="noopener" aria-label="Discord"><img src="assets/icons/discord.png" alt=""></a>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-  document.getElementById('path').textContent = location.pathname || '/unknown';
+  var bootLines = [
+    'ssh guest@qweyns.dev',
+    'cd "' + (location.pathname || '/unknown') + '"',
+    '<span class="err">bash: cd: no such file or directory</span>',
+  ];
+  var boot = document.getElementById('boot');
+  var i = 0;
+  function next(){
+    if (i >= bootLines.length){ setTimeout(reveal, 300); return; }
+    var line = document.createElement('div');
+    line.className = 'line';
+    line.innerHTML = (i === 0 ? '<span style="color:var(--text-dim)">$ </span>' : (i === 1 ? '<span style="color:var(--text-dim)">$ </span>' : '')) + bootLines[i];
+    boot.appendChild(line);
+    i++;
+    setTimeout(next, 260);
+  }
+  function reveal(){
+    boot.style.display = 'none';
+    var content = document.getElementById('content');
+    content.classList.add('show');
+    var echo = document.getElementById('pathEcho');
+    echo.textContent = location.origin + (location.pathname || '/unknown');
+  }
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    reveal();
+  } else {
+    next();
+  }
 </script>
 </body>
 </html>
