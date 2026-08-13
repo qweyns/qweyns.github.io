@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — qweyns</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0b0d11">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+
+<style>
+  @font-face{
+    font-family:'MinecraftFive';
+    src:url('assets/fonts/MinecraftFiveBold.otf') format('opentype');
+    font-weight:700; font-style:normal; font-display:swap;
+  }
+  :root{
+    --bg:#0b0d11; --panel:#12151c; --panel-2:#171b23;
+    --border:#2a3138; --border-soft:#232830;
+    --text:#e4eaef; --text-dim:#93a8b5; --text-faint:#5b6d78;
+    --accent:#bef264;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'MinecraftFive', ui-monospace, monospace;
+    -webkit-font-smoothing:none; font-smooth:never; letter-spacing:.02em;
+    display:flex; align-items:center; justify-content:center;
+    min-height:100vh; padding:24px; position:relative; overflow-x:hidden;
+  }
+  .bg-grid{
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(var(--border-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border-soft) 1px, transparent 1px);
+    background-size:42px 42px; opacity:.3;
+    mask-image:radial-gradient(ellipse 80% 60% at 50% 30%, #000 40%, transparent 90%);
+    pointer-events:none;
+  }
+  .bg-glow{
+    position:fixed; top:-10%; right:-10%; width:60vmax; height:60vmax;
+    background:radial-gradient(circle, rgba(190,242,100,.08) 0%, transparent 65%);
+    filter:blur(10px); pointer-events:none;
+  }
+  .term{
+    position:relative; width:100%; max-width:480px;
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,.6);
+    overflow:hidden;
+  }
+  .term-bar{
+    display:flex; align-items:center; gap:8px; padding:11px 14px;
+    background:var(--panel-2); border-bottom:1px solid var(--border);
+  }
+  .dot{ width:10px; height:10px; border-radius:2px; background:#3a424c; }
+  .term-path{ margin-left:8px; font-size:11px; color:var(--text-faint); flex:1; text-align:center; }
+  .term-body{ padding:26px 22px; font-size:12.5px; line-height:2; color:var(--text-dim); }
+  .term-body .err{ color:#ef7373; }
+  .term-body .ok{ color:var(--accent); }
+  .term-body b{ color:var(--text); }
+  .cursor{ display:inline-block; width:7px; background:var(--accent); animation:blink 1s step-end infinite; }
+  @keyframes blink{ 50%{ opacity:0; } }
+  a.home-link{
+    display:inline-flex; align-items:center; gap:6px; margin-top:8px;
+    color:var(--bg); background:var(--accent); text-decoration:none;
+    padding:8px 12px; font-size:11px; font-weight:700;
+  }
+  a.home-link:hover{ opacity:.85; }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<div class="term">
+  <div class="term-bar">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div class="term-path">guest@qweyns:~</div>
+  </div>
+  <div class="term-body">
+    <div>$ cd <b id="path"></b></div>
+    <div class="err">bash: cd: no such file or directory</div>
+    <div>$ ls -la</div>
+    <div>404 <span class="ok">— page not found</span></div>
+    <div>&nbsp;</div>
+    <a class="home-link" href="/">cd ~ &nbsp;<span class="cursor">&nbsp;</span></a>
+  </div>
+</div>
+
+<script>
+  document.getElementById('path').textContent = location.pathname || '/unknown';
+</script>
+</body>
+</html>
