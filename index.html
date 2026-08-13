@@ -49,8 +49,8 @@
     --text:          #e4eaef;
     --text-dim:      #93a8b5;
     --text-faint:    #5b6d78;
-    --accent:        #e3a857;
-    --accent-soft:   rgba(227,168,87,.14);
+    --accent:        #c3d2da;
+    --accent-soft:   rgba(195,210,218,.14);
     --ok:            #7fbf8f;
     --ease: cubic-bezier(.22,.85,.32,1);
   }
@@ -127,7 +127,7 @@
   @keyframes gridshift{ from{ background-position:0 0, 0 0; } to{ background-position:42px 84px, 42px 84px; } }
   .bg-glow{
     position:fixed; top:-10%; right:-10%; width:60vmax; height:60vmax;
-    background:radial-gradient(circle, rgba(227,168,87,.10) 0%, transparent 65%);
+    background:radial-gradient(circle, rgba(195,210,218,.10) 0%, transparent 65%);
     filter:blur(10px); pointer-events:none;
     animation:drift 20s ease-in-out infinite alternate;
   }
@@ -221,7 +221,7 @@
     padding:3px 8px 3px 6px; border-radius:3px; animation:fadeslide .4s ease .12s both;
   }
   .badge.b-vacation .pulse{ width:6px; height:6px; border-radius:1px; background:var(--ok); animation:pulse 2s infinite; }
-  .badge.b-java{ color:#e3a857; border-color:#4a3a24; }
+  .badge.b-java{ color:#c3d2da; border-color:#3d4f5a; }
   .badge.b-mc{ color:#7fbf8f; border-color:#2e4a34; }
   @keyframes pulse{
     0%{ box-shadow:0 0 0 0 rgba(127,191,143,.45); }
@@ -352,7 +352,7 @@
   .social-btn img{ width:23px; height:23px; display:block; object-fit:contain; }
   .social-btn:hover, .social-btn:focus-visible{
     transform:translateY(-3px); border-color:var(--accent);
-    box-shadow:0 0 0 1px var(--accent), 0 10px 20px -8px rgba(227,168,87,.5);
+    box-shadow:0 0 0 1px var(--accent), 0 10px 20px -8px rgba(195,210,218,.5);
     outline:none;
   }
   .social-btn .tip{
@@ -449,7 +449,7 @@
   }
   .vb-dot{
     width:5px; height:5px; border-radius:50%; background:var(--accent); flex-shrink:0;
-    box-shadow:0 0 6px rgba(227,168,87,.55);
+    box-shadow:0 0 6px rgba(195,210,218,.55);
   }
 
   @media (max-width:899px){
@@ -702,7 +702,7 @@ const CONFIG = {
 };
 
 /* svg reused across both languages for the first (self-promo) ad slot */
-const SMASHEGG_SVG = '<svg viewBox="0 0 8 8" width="34" height="34"><rect x="2" y="0" width="4" height="1"/><rect x="1" y="1" width="6" height="1"/><rect x="0" y="2" width="8" height="4"/><rect x="1" y="6" width="6" height="1"/><rect x="2" y="7" width="4" height="1"/></svg>';
+const SMASHEGG_SVG = '<svg viewBox="0 0 8 8" width="34" height="34" style="fill:var(--accent)"><rect x="2" y="0" width="4" height="1"/><rect x="1" y="1" width="6" height="1"/><rect x="0" y="2" width="8" height="4"/><rect x="1" y="6" width="6" height="1"/><rect x="2" y="7" width="4" height="1"/></svg>';
 
 /* ============================================================
    I18N — every user-facing string lives here, en + ru
@@ -956,7 +956,7 @@ function renderViewsText(){
       const age = (now - d.t) / 600;
       const alpha = (1 - age) * 0.8;
       const size = 4 * (1 - age * 0.7);
-      ctx.fillStyle = `rgba(227,168,87,${alpha})`;
+      ctx.fillStyle = `rgba(195,210,218,${alpha})`;
       ctx.fillRect(d.x - size/2, d.y - size/2, size, size);
     }
     if (dots.length) raf = requestAnimationFrame(draw);
@@ -1401,7 +1401,7 @@ function spawnEgg(){
   gameField.querySelectorAll('.egg').forEach(e => e.remove());
   const egg = document.createElement('div');
   egg.className = 'egg';
-  egg.innerHTML = `<svg viewBox="0 0 8 8" width="28" height="28"><rect x="2" y="0" width="4" height="1" fill="#e3a857"/><rect x="1" y="1" width="6" height="1" fill="#e3a857"/><rect x="0" y="2" width="8" height="4" fill="#e3a857"/><rect x="1" y="6" width="6" height="1" fill="#e3a857"/><rect x="2" y="7" width="4" height="1" fill="#e3a857"/></svg>`;
+  egg.innerHTML = `<svg viewBox="0 0 8 8" width="28" height="28"><rect x="2" y="0" width="4" height="1" fill="#c3d2da"/><rect x="1" y="1" width="6" height="1" fill="#c3d2da"/><rect x="0" y="2" width="8" height="4" fill="#c3d2da"/><rect x="1" y="6" width="6" height="1" fill="#c3d2da"/><rect x="2" y="7" width="4" height="1" fill="#c3d2da"/></svg>`;
   const fw = gameField.clientWidth - 30, fh = gameField.clientHeight - 30;
   egg.style.left = (Math.random() * fw) + 'px';
   egg.style.top = (Math.random() * fh) + 'px';
