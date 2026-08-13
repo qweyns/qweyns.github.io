@@ -509,6 +509,12 @@
   @media (max-width:899px){
     .ad-col .views-badge.ghost{ display:none; }
   }
+  /* once the ad panel has actually finished closing (is-dismissed), drop the
+     whole column so the terminal re-centers — :has() ties this to the panel's
+     own animation state instead of firing the instant the close button is
+     clicked, so the collapse animation still gets to play out first */
+  .ad-col:has(.ad-panel.is-dismissed){ display:none; }
+  .ad-col.collapsed{ display:none; }
 
   @media (max-width:899px){
     .stage{ flex-direction:column; align-items:center; }
@@ -1115,6 +1121,8 @@ let rerenderCurrentAd = () => {};
   const restoreBtn = $('#restoreAdBtn');
   if (closedBefore){
     panel.classList.add('is-dismissed');
+    const col = panel.closest('.ad-col');
+    if (col) col.classList.add('collapsed');
     stage.classList.add('ad-closed');
     if (restoreBtn) restoreBtn.hidden = false;
   }
@@ -1174,6 +1182,8 @@ let rerenderCurrentAd = () => {};
 
   function openAds(){
     panel.classList.remove('is-dismissed', 'closing');
+    const col = panel.closest('.ad-col');
+    if (col) col.classList.remove('collapsed');
     stage.classList.remove('ad-closed');
     if (restoreBtn) restoreBtn.hidden = true;
     show(idx);
@@ -1209,7 +1219,11 @@ let rerenderCurrentAd = () => {};
     stage.classList.add('ad-closed');
     storageSet(AD_CLOSED_KEY, '1');
     if (restoreBtn) restoreBtn.hidden = false;
-    setTimeout(() => panel.classList.add('is-dismissed'), 420);
+    setTimeout(() => {
+      panel.classList.add('is-dismissed');
+      const col = panel.closest('.ad-col');
+      if (col) col.classList.add('collapsed');
+    }, 420);
   });
 
   if (restoreBtn){
@@ -1413,7 +1427,13 @@ function drawVisualizer(){
     analyser.getByteFrequencyData(analyserData);
     const step = Math.max(1, Math.floor(analyserData.length / visualizerBars.length));
     for (let i = 0; i < visualizerBars.length; i++){
-      const v = analyserData[i * step] || 0;
+      const raw = analyserData[i * step] || 0;
+      /* most music carries far more energy in the low end than the high end,
+         so the raw spectrum reads as a steady downward staircase — a mild
+         boost on the higher-index bars keeps the whole row visibly moving
+         instead of the right half sitting flat near zero */
+      const boost = 1 + (i / (visualizerBars.length - 1)) * 1.6;
+      const v = Math.min(255, raw * boost);
       visualizerBars[i].style.height = Math.max(8, (v / 255) * 100) + '%';
     }
   } else {
