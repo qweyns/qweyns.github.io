@@ -49,8 +49,8 @@
     --text:          #e4eaef;
     --text-dim:      #93a8b5;
     --text-faint:    #5b6d78;
-    --accent:        #66d9ef;
-    --accent-soft:   rgba(102,217,239,.14);
+    --accent:        #bef264;
+    --accent-soft:   rgba(190,242,100,.14);
     --ok:            #7fbf8f;
     --ease: cubic-bezier(.22,.85,.32,1);
   }
@@ -113,6 +113,38 @@
   .ctrl-btn:hover{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); transform:translateY(-1px); }
   @media (max-width:480px){ .ctrl-corner{ top:8px; right:8px; } .ctrl-btn{ height:24px; font-size:9px; min-width:28px; } }
 
+  /* ---- entry gate: click/tap/key anywhere to reveal the site + start music ---- */
+  #gate{
+    position:fixed; inset:0; z-index:9500;
+    background:var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    transition: opacity .5s var(--ease), visibility .5s var(--ease);
+  }
+  #gate.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+  #gate::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(var(--border-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border-soft) 1px, transparent 1px);
+    background-size:42px 42px;
+    opacity:.3;
+    mask-image:radial-gradient(ellipse 80% 60% at 50% 40%, #000 40%, transparent 90%);
+  }
+  .gate-inner{ position:relative; text-align:center; }
+  .gate-line{
+    font-size:14px; color:var(--text-dim); letter-spacing:.03em;
+    display:flex; align-items:center; gap:2px; justify-content:center;
+  }
+  .gate-line::after{
+    content:""; display:inline-block; width:8px; height:15px;
+    background:var(--accent); margin-left:4px;
+    animation:blink 1s step-end infinite;
+  }
+  .gate-sub{ margin-top:10px; font-size:10px; color:var(--text-faint); }
+  @media (max-width:480px){ .gate-line{ font-size:12px; } }
+
   .bg-grid{
     position:fixed; inset:0;
     background-image:
@@ -127,7 +159,7 @@
   @keyframes gridshift{ from{ background-position:0 0, 0 0; } to{ background-position:42px 84px, 42px 84px; } }
   .bg-glow{
     position:fixed; top:-10%; right:-10%; width:60vmax; height:60vmax;
-    background:radial-gradient(circle, rgba(102,217,239,.10) 0%, transparent 65%);
+    background:radial-gradient(circle, rgba(190,242,100,.10) 0%, transparent 65%);
     filter:blur(10px); pointer-events:none;
     animation:drift 20s ease-in-out infinite alternate;
   }
@@ -221,7 +253,7 @@
     padding:3px 8px 3px 6px; border-radius:3px; animation:fadeslide .4s ease .12s both;
   }
   .badge.b-vacation .pulse{ width:6px; height:6px; border-radius:1px; background:var(--ok); animation:pulse 2s infinite; }
-  .badge.b-java{ color:#66d9ef; border-color:#3d4f5a; }
+  .badge.b-java{ color:#bef264; border-color:#3d4f5a; }
   .badge.b-mc{ color:#7fbf8f; border-color:#2e4a34; }
   @keyframes pulse{
     0%{ box-shadow:0 0 0 0 rgba(127,191,143,.45); }
@@ -352,7 +384,7 @@
   .social-btn img{ width:23px; height:23px; display:block; object-fit:contain; }
   .social-btn:hover, .social-btn:focus-visible{
     transform:translateY(-3px); border-color:var(--accent);
-    box-shadow:0 0 0 1px var(--accent), 0 10px 20px -8px rgba(102,217,239,.5);
+    box-shadow:0 0 0 1px var(--accent), 0 10px 20px -8px rgba(190,242,100,.5);
     outline:none;
   }
   .social-btn .tip{
@@ -449,7 +481,7 @@
   }
   .vb-dot{
     width:5px; height:5px; border-radius:50%; background:var(--accent); flex-shrink:0;
-    box-shadow:0 0 6px rgba(102,217,239,.55);
+    box-shadow:0 0 6px rgba(190,242,100,.55);
   }
 
   /* ---- ad column: a ghost copy of the views-badge keeps the ad panel's
@@ -554,6 +586,13 @@
 <div class="ctrl-corner">
   <button class="ctrl-btn" id="langToggle" type="button" title="Language / Язык">RU</button>
   <button class="ctrl-btn" id="soundToggle" type="button" title="Sound / Звук">🔊</button>
+</div>
+
+<div id="gate" role="button" tabindex="0" aria-label="Click to enter">
+  <div class="gate-inner">
+    <div class="gate-line" id="gateText">click anywhere to enter</div>
+    <div class="gate-sub" id="gateSub">unmutes the music</div>
+  </div>
 </div>
 
 <div class="bg-grid"></div>
@@ -761,6 +800,7 @@ const I18N = {
     gameTitle: 'SMASH THE EGG', gameScore: 'score:', gameTime: 'time:', gameBest: 'best:', gameStart: 'start',
     copyLink: 'copy link', copyLinkCopied: 'copied!',
     achProgress: (n, total) => `achievements: ${n}/${total}`,
+    gateText: 'click anywhere to enter', gateSub: 'unmutes the music',
   },
   ru: {
     roles: ["Java-разработчик", "Minecraft-плагины", "SmashEgg / QweMascots / QweMine"],
@@ -801,6 +841,7 @@ const I18N = {
     gameTitle: 'РАЗБЕЙ ЯЙЦО', gameScore: 'очки:', gameTime: 'время:', gameBest: 'рекорд:', gameStart: 'старт',
     copyLink: 'копировать ссылку', copyLinkCopied: 'скопировано!',
     achProgress: (n, total) => `ачивки: ${n}/${total}`,
+    gateText: 'нажми, чтобы войти', gateSub: 'включит звук и музыку',
   },
 };
 
@@ -970,7 +1011,7 @@ function renderViewsText(){
       const age = (now - d.t) / 600;
       const alpha = (1 - age) * 0.8;
       const size = 4 * (1 - age * 0.7);
-      ctx.fillStyle = `rgba(102,217,239,${alpha})`;
+      ctx.fillStyle = `rgba(190,242,100,${alpha})`;
       ctx.fillRect(d.x - size/2, d.y - size/2, size, size);
     }
     if (dots.length) raf = requestAnimationFrame(draw);
@@ -1255,6 +1296,7 @@ function setPlaying(p){
 }
 loadTrack(0, false);
 audio.volume = 0.55;
+audio.muted = !soundEnabled;
 applyPlayerToggleStyles();
 
 $('#pPlay').addEventListener('click', () => { clickSound(); if (isPlaying){ audio.pause(); } else { audio.play().catch(()=>{}); } });
@@ -1415,7 +1457,7 @@ function spawnEgg(){
   gameField.querySelectorAll('.egg').forEach(e => e.remove());
   const egg = document.createElement('div');
   egg.className = 'egg';
-  egg.innerHTML = `<svg viewBox="0 0 8 8" width="28" height="28"><rect x="2" y="0" width="4" height="1" fill="#66d9ef"/><rect x="1" y="1" width="6" height="1" fill="#66d9ef"/><rect x="0" y="2" width="8" height="4" fill="#66d9ef"/><rect x="1" y="6" width="6" height="1" fill="#66d9ef"/><rect x="2" y="7" width="4" height="1" fill="#66d9ef"/></svg>`;
+  egg.innerHTML = `<svg viewBox="0 0 8 8" width="28" height="28"><rect x="2" y="0" width="4" height="1" fill="#bef264"/><rect x="1" y="1" width="6" height="1" fill="#bef264"/><rect x="0" y="2" width="8" height="4" fill="#bef264"/><rect x="1" y="6" width="6" height="1" fill="#bef264"/><rect x="2" y="7" width="4" height="1" fill="#bef264"/></svg>`;
   const fw = gameField.clientWidth - 30, fh = gameField.clientHeight - 30;
   egg.style.left = (Math.random() * fw) + 'px';
   egg.style.top = (Math.random() * fh) + 'px';
@@ -1510,6 +1552,8 @@ function applyLang(lang){
   $('#gameBestLbl').textContent = t().gameBest;
   $('#gameStart').textContent = t().gameStart;
   $('#copyLinkText').textContent = t().copyLink;
+  $('#gateText').textContent = t().gateText;
+  $('#gateSub').textContent = t().gateSub;
   updateAchProgress();
 
   startRoleTyping();
@@ -1529,6 +1573,7 @@ $('#soundToggle').addEventListener('click', () => {
   soundEnabled = !soundEnabled;
   try{ localStorage.setItem('qweyns_sound', soundEnabled ? '1' : '0'); }catch(e){}
   applySoundIcon();
+  audio.muted = !soundEnabled;
   if (soundEnabled) clickSound();
 });
 
@@ -1568,7 +1613,26 @@ $('#achProgressBtn').addEventListener('click', () => {
 });
 
 applyLang(currentLang);
-playBoot();
+
+/* entry gate — click, tap, or Enter/Space anywhere on it reveals the
+   site and starts the music in the same gesture, which is also what
+   lets the browser allow audio to autoplay with sound. */
+const gate = $('#gate');
+let entered = false;
+function enterSite(){
+  if (entered) return;
+  entered = true;
+  gate.classList.add('hidden');
+  playBoot();
+  audio.play().catch(()=>{});
+}
+gate.addEventListener('click', enterSite);
+gate.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){
+    e.preventDefault();
+    enterSite();
+  }
+});
 </script>
 </body>
 </html>
