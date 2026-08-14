@@ -520,37 +520,39 @@
     box-shadow:0 0 6px rgba(190,242,100,.55);
   }
 
-  /* ---- ad column: a ghost copy of the views-badge keeps the ad panel's
-     top edge lined up with the terminal's top edge instead of the page's ---- */
+  /* ---- side columns: GitHub activity floats to the left of the terminal,
+     the ad floats to the right. Each carries a ghost copy of the views-badge
+     so its card's top edge lines up with the terminal's top edge instead of
+     the page's. Below 1180px there simply isn't reliable room for both a
+     left AND a right column without crowding or clipping, so everything
+     collapses into one full-width stack under the terminal instead. ---- */
+  .gh-col{ display:contents; }
   .ad-col{ display:contents; }
-  .ad-col .views-badge.ghost{ visibility:hidden; pointer-events:none; animation:none; }
-  @media (min-width:900px){
-    .ad-col{ display:flex; flex-direction:column; gap:14px; width:190px; flex-shrink:0; }
-  }
-  @media (max-width:899px){
-    .ad-col .views-badge.ghost{ display:none; }
-  }
-  /* previously the whole ad-col collapsed once the ad panel finished closing,
-     so the terminal could re-center. Now that main-col centers itself
-     independently (see the 1100px block below) and the column also holds
-     the GitHub widget, collapsing the whole column would wrongly hide that
-     widget too — the dismissed ad-panel already hides itself via
-     .is-dismissed, which is enough. */
+  .gh-col .views-badge.ghost, .ad-col .views-badge.ghost{ visibility:hidden; pointer-events:none; animation:none; }
 
-  /* ---- true-centered terminal on wide screens ----
-     Below this, .stage centers the (main-col + ad-col) pair together, which
-     visibly pushes the terminal left of the page's actual center whenever
-     the ad is showing. From here up there's reliably enough width to instead
-     center main-col on its own and float the ad column beside it — so the
-     terminal sits dead-center whether or not the ad is open, and closing it
-     never needs to shift anything else to compensate. 1100px leaves a safe
-     margin so the floated column never clips off the right edge. */
-  @media (min-width:1100px){
+  @media (max-width:1179px){
+    .gh-col .views-badge.ghost, .ad-col .views-badge.ghost{ display:none; }
+  }
+
+  /* ---- true-centered terminal with a column on each side ----
+     main-col centers itself independently of both side columns (they're
+     positioned absolutely, out of flow), so opening/closing the ad — or
+     the GitHub widget failing to load — never shifts the terminal.
+     1180px leaves roughly 130px of breathing room past the minimum both
+     columns need, so neither ever clips off the viewport edge. */
+  @media (min-width:1180px){
     .stage{ position:relative; width:auto; max-width:none; }
-    .ad-col{ position:absolute; top:0; left:100%; margin-left:18px; }
+    .gh-col{
+      display:flex; flex-direction:column; gap:14px; width:190px; flex-shrink:0;
+      position:absolute; top:0; right:100%; margin-right:18px;
+    }
+    .ad-col{
+      display:flex; flex-direction:column; gap:14px; width:190px; flex-shrink:0;
+      position:absolute; top:0; left:100%; margin-left:18px;
+    }
   }
 
-  @media (max-width:899px){
+  @media (max-width:1179px){
     .stage{ flex-direction:column; align-items:center; }
     .stage.ad-closed{ gap:16px; }
     .main-col{ max-width:100%; }
@@ -683,7 +685,7 @@
   .gh-skel{ height:10px; border-radius:2px; background:var(--border); animation:ghpulse 1.4s ease-in-out infinite; }
   .gh-skel + .gh-skel{ margin-top:8px; }
   @keyframes ghpulse{ 0%,100%{ opacity:.25; } 50%{ opacity:.55; } }
-  @media (max-width:899px){ .gh-widget{ width:100%; max-width:560px; box-sizing:border-box; margin:0 auto; } }
+  @media (max-width:1179px){ .gh-widget{ width:100%; max-width:560px; box-sizing:border-box; margin:0 auto; } }
 
   /* ---- back to top ---- */
   .back-to-top{
@@ -867,6 +869,17 @@
     </div>
   </div>
 
+  <div class="gh-col">
+    <div class="views-badge ghost" aria-hidden="true"><span class="vb-dot"></span><span>–</span></div>
+    <div class="gh-widget" id="ghWidget">
+      <div class="ad-tag"><span class="blink-dot"></span><span id="ghLabelText">GITHUB ACTIVITY</span></div>
+      <div id="ghBody">
+        <div class="gh-skel" style="width:88%"></div>
+        <div class="gh-skel" style="width:62%"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="ad-col">
     <div class="views-badge ghost" aria-hidden="true"><span class="vb-dot"></span><span>–</span></div>
     <div class="ad-panel" id="adPanel">
@@ -876,14 +889,6 @@
         <div class="ad-dots" id="adDots"></div>
       </div>
       <div class="ad-slot" id="adSlot"></div>
-    </div>
-
-    <div class="gh-widget" id="ghWidget">
-      <div class="ad-tag"><span class="blink-dot"></span><span id="ghLabelText">GITHUB ACTIVITY</span></div>
-      <div id="ghBody">
-        <div class="gh-skel" style="width:88%"></div>
-        <div class="gh-skel" style="width:62%"></div>
-      </div>
     </div>
   </div>
 </div>
