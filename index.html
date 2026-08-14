@@ -111,6 +111,7 @@
     transition:border-color .15s ease, color .15s ease, transform .15s ease, background-color .15s ease;
   }
   .ctrl-btn:hover{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); transform:translateY(-1px); }
+  .ctrl-btn:active{ transform:translateY(0) scale(.92); }
   @media (max-width:480px){ .ctrl-corner{ top:8px; right:8px; } .ctrl-btn{ height:24px; font-size:9px; min-width:28px; } }
 
   /* ---- entry gate: click/tap/key anywhere to reveal the site + start music ---- */
@@ -228,6 +229,8 @@
 
   #profile{ display:none; }
   #profile.show{ display:block; animation:appear .45s ease both; }
+  #profile.show{ transition:opacity .18s ease; }
+  #profile.lang-swap{ opacity:0; }
 
   .head{ display:flex; gap:14px; align-items:flex-start; margin-bottom:16px; }
   .avatar-wrap{ position:relative; flex-shrink:0; }
@@ -402,6 +405,7 @@
     box-shadow:0 0 0 1px var(--accent), 0 10px 20px -8px rgba(190,242,100,.5);
     outline:none;
   }
+  .social-btn:active{ transform:translateY(-1px) scale(.95); }
   .social-btn .tip{
     position:absolute; bottom:-20px; left:50%; transform:translateX(-50%);
     font-size:9px; color:var(--text-faint); opacity:0; transition:opacity .15s ease;
@@ -420,19 +424,31 @@
   .restore-ad-btn:hover{ color:var(--accent); }
   .foot-utils .restore-ad-btn{ margin-left:0; }
 
+  /* smooth grow/shrink for the "show promo" footer button — it used to
+     just pop in/out instantly via the hidden attribute */
+  #restoreAdBtn{
+    opacity:0; max-width:0; overflow:hidden; white-space:nowrap;
+    transition: opacity .25s var(--ease), max-width .3s var(--ease);
+  }
+  #restoreAdBtn.is-visible{ opacity:1; max-width:160px; }
+
+  #achProgressText.pulse-once{ animation:ach-pulse .5s var(--ease); }
+  @keyframes ach-pulse{ 0%{ color:var(--accent); transform:scale(1.12); display:inline-block; } 100%{ color:inherit; transform:scale(1); } }
+
   .ad-panel{
     width:190px; flex-shrink:0; background:var(--panel);
     border:1px solid var(--border); padding:12px; position:relative;
-    animation:rise-in .6s var(--ease) .1s both;
+    /* mirrors .closing exactly (translateX -30px <-> 0) so opening and
+       closing read as the same motion run in reverse, not two different
+       animation languages stitched together */
+    animation:ad-slide .45s var(--ease) .15s both;
     opacity:1; transform:translateX(0);
-    /* opacity/transform run first (the visible "slide left"), the box
-       dimensions collapse a beat later so it reads as slide-then-close
-       rather than everything shrinking in place at once */
     transition: opacity .32s var(--ease), transform .32s var(--ease),
                 width .34s var(--ease) .14s, padding .34s var(--ease) .14s,
                 border-color .34s var(--ease) .14s, margin .34s var(--ease) .14s;
     overflow:hidden;
   }
+  @keyframes ad-slide{ from{ opacity:0; transform:translateX(-30px); } to{ opacity:1; transform:translateX(0); } }
   .ad-panel::before, .ad-panel::after{ content:""; position:absolute; width:6px; height:6px; background:var(--accent); opacity:.7; }
   .ad-panel::before{ top:-1px; left:-1px; }
   .ad-panel::after{ bottom:-1px; right:-1px; }
@@ -451,6 +467,7 @@
     transition:border-color .15s ease, color .15s ease, transform .15s ease;
   }
   .ad-close:hover{ border-color:var(--accent); color:var(--accent); transform:rotate(90deg); }
+  .ad-close:active{ transform:rotate(90deg) scale(.88); }
 
   .ad-tag{ display:flex; align-items:center; gap:6px; font-size:9px; color:var(--text-faint); letter-spacing:.08em; margin-bottom:12px; padding-right:16px; }
   .ad-tag .blink-dot{ width:5px; height:5px; background:var(--accent); animation:blink 1.1s step-end infinite; flex-shrink:0; }
@@ -557,16 +574,32 @@
   .toast-text{ font-size:11px; color:var(--text); line-height:1.6; }
   .toast-text b{ display:block; color:var(--accent); font-size:9px; letter-spacing:.06em; }
 
-  #game-overlay{
+  /* ---- shared fade/scale open+close for full-screen modals (game,
+     shortcuts) — previously these just snapped from display:none to
+     display:flex with no exit animation at all ---- */
+  .modal-overlay{
     position:fixed; inset:0; background:rgba(11,13,17,.9); z-index:9999;
-    display:none; align-items:center; justify-content:center; padding:20px;
+    display:flex; align-items:center; justify-content:center; padding:20px;
     backdrop-filter: blur(2px);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition: opacity .28s var(--ease), visibility 0s linear .28s;
   }
-  #game-overlay.open{ display:flex; }
+  .modal-overlay.open{
+    opacity:1; visibility:visible; pointer-events:auto;
+    transition: opacity .28s var(--ease), visibility 0s linear 0s;
+  }
+  .modal-overlay .game-box, .modal-overlay .shortcuts-box{
+    transform:translateY(10px) scale(.97); opacity:0;
+    transition: transform .3s var(--ease), opacity .3s var(--ease);
+  }
+  .modal-overlay.open .game-box, .modal-overlay.open .shortcuts-box{
+    transform:translateY(0) scale(1); opacity:1;
+  }
+
+  #game-overlay{ }
   .game-box{
     width:100%; max-width:420px; background:var(--panel); border:1px solid var(--accent);
     border-radius:10px; padding:16px; position:relative;
-    animation: rise-in .3s var(--ease) both;
   }
   .game-head{ display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--text-dim); margin-bottom:10px; }
   .game-close{ background:none; border:1px solid var(--border); color:var(--text-dim); width:22px; height:22px; cursor:pointer; transition:border-color .15s ease, color .15s ease; }
@@ -623,11 +656,23 @@
   .gh-widget{
     background:var(--panel); border:1px solid var(--border); border-radius:6px;
     padding:12px; position:relative;
-    animation:rise-in .6s var(--ease) .15s both;
+    animation:ad-slide .45s var(--ease) .3s both;
   }
   .gh-widget::before, .gh-widget::after{ content:""; position:absolute; width:6px; height:6px; background:var(--accent); opacity:.7; }
   .gh-widget::before{ top:-1px; left:-1px; }
   .gh-widget::after{ bottom:-1px; right:-1px; }
+  /* ~3 rows visible by default, rest reachable with our themed scrollbar —
+     content fades rather than snapping when it swaps (skeleton→loaded,
+     or a language switch) */
+  #ghBody{
+    max-height:112px; overflow-y:auto; padding-right:7px; margin-right:-7px;
+    transition:opacity .22s ease;
+    scrollbar-width:thin; scrollbar-color:var(--border) transparent;
+  }
+  #ghBody::-webkit-scrollbar{ width:5px; }
+  #ghBody::-webkit-scrollbar-track{ background:transparent; }
+  #ghBody::-webkit-scrollbar-thumb{ background:var(--border); border-radius:0; }
+  #ghBody::-webkit-scrollbar-thumb:hover{ background:var(--accent); }
   .gh-row{ display:flex; align-items:flex-start; gap:8px; }
   .gh-row + .gh-row{ margin-top:9px; }
   .gh-dot{ width:5px; height:5px; margin-top:5px; border-radius:1px; background:var(--accent); opacity:.7; flex-shrink:0; }
@@ -652,20 +697,15 @@
   }
   .back-to-top.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
   .back-to-top:hover{ border-color:var(--accent); color:var(--accent); }
+  .back-to-top:active{ transform:translateY(1px) scale(.92); }
   .back-to-top svg{ width:15px; height:15px; }
 
-  /* ---- keyboard shortcuts hint modal (press ?) — reuses the game modal's
-     visual language rather than duplicating it wholesale ---- */
-  #shortcuts-overlay{
-    position:fixed; inset:0; background:rgba(11,13,17,.9); z-index:9999;
-    display:none; align-items:center; justify-content:center; padding:20px;
-    backdrop-filter: blur(2px);
-  }
-  #shortcuts-overlay.open{ display:flex; }
+  /* ---- keyboard shortcuts hint modal (press ?) — shares .modal-overlay's
+     fade/scale open+close, defined above ---- */
+  #shortcuts-overlay{ }
   .shortcuts-box{
     width:100%; max-width:340px; background:var(--panel); border:1px solid var(--accent);
     border-radius:10px; padding:16px; position:relative;
-    animation: rise-in .3s var(--ease) both;
   }
   .shortcuts-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:7px 0; font-size:11.5px; color:var(--text-dim); border-bottom:1px solid var(--border-soft); }
   .shortcuts-row:last-child{ border-bottom:none; }
@@ -680,9 +720,10 @@
     background:var(--panel); border:1px solid var(--border); color:var(--text-faint);
     display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;
     font-size:12px; font-weight:700;
-    transition:border-color .15s ease, color .15s ease;
+    transition:border-color .15s ease, color .15s ease, transform .15s ease;
   }
   .shortcuts-hint-btn:hover{ border-color:var(--accent); color:var(--accent); }
+  .shortcuts-hint-btn:active{ transform:scale(.9); }
 
   /* ---- matrix rain easter egg (console: type "matrix") ---- */
   #matrix-overlay{
@@ -853,7 +894,7 @@
 
 <button class="shortcuts-hint-btn" id="shortcutsHintBtn" aria-label="keyboard shortcuts" title="keyboard shortcuts (?)" type="button">?</button>
 
-<div id="shortcuts-overlay">
+<div id="shortcuts-overlay" class="modal-overlay">
   <div class="shortcuts-box" role="dialog" aria-modal="true" aria-labelledby="shortcutsTitleText">
     <div class="game-head">
       <span id="shortcutsTitleText">KEYBOARD SHORTCUTS</span>
@@ -869,7 +910,7 @@
 
 <canvas id="matrix-overlay" aria-hidden="true"></canvas>
 
-<div id="game-overlay">
+<div id="game-overlay" class="modal-overlay">
   <div class="game-box" role="dialog" aria-modal="true" aria-labelledby="gameTitleText">
     <div class="game-head">
       <span id="gameTitleText">SMASH THE EGG</span>
@@ -1288,10 +1329,20 @@ let rerenderCurrentAd = () => {};
 
   const closedBefore = storageGet(AD_CLOSED_KEY) === '1';
   const restoreBtn = $('#restoreAdBtn');
+  function setRestoreBtnVisible(show){
+    if (!restoreBtn) return;
+    if (show){
+      restoreBtn.hidden = false;
+      requestAnimationFrame(() => restoreBtn.classList.add('is-visible'));
+    } else {
+      restoreBtn.classList.remove('is-visible');
+      setTimeout(() => { restoreBtn.hidden = true; }, 300);
+    }
+  }
   if (closedBefore){
     panel.classList.add('is-dismissed');
     stage.classList.add('ad-closed');
-    if (restoreBtn) restoreBtn.hidden = false;
+    setRestoreBtnVisible(true);
   }
 
   function renderItem(ad){
@@ -1350,7 +1401,7 @@ let rerenderCurrentAd = () => {};
   function openAds(){
     panel.classList.remove('is-dismissed', 'closing');
     stage.classList.remove('ad-closed');
-    if (restoreBtn) restoreBtn.hidden = true;
+    setRestoreBtnVisible(false);
     show(idx);
     startRotation();
   }
@@ -1383,7 +1434,7 @@ let rerenderCurrentAd = () => {};
     panel.classList.add('closing');
     stage.classList.add('ad-closed');
     storageSet(AD_CLOSED_KEY, '1');
-    if (restoreBtn) restoreBtn.hidden = false;
+    setRestoreBtnVisible(true);
     setTimeout(() => {
       panel.classList.add('is-dismissed');
     }, 480);
@@ -1674,9 +1725,19 @@ function storageGetGlobal(key){ try { return localStorage.getItem(key); } catch(
 function storageSetGlobal(key, val){ try { localStorage.setItem(key, val); } catch(e){} }
 
 const TOTAL_ACHIEVEMENTS = Object.keys(ACHIEVEMENTS).length;
+let lastAchProgressCount = -1;
 function updateAchProgress(){
   const el = $('#achProgressText');
-  if (el) el.textContent = t().achProgress(unlocked.size, TOTAL_ACHIEVEMENTS);
+  if (!el) return;
+  el.textContent = t().achProgress(unlocked.size, TOTAL_ACHIEVEMENTS);
+  // small pulse when the count actually goes up, so a new unlock reads as
+  // a change here too, not just in the toast
+  if (lastAchProgressCount >= 0 && unlocked.size > lastAchProgressCount){
+    el.classList.remove('pulse-once');
+    void el.offsetWidth; // restart the animation
+    el.classList.add('pulse-once');
+  }
+  lastAchProgressCount = unlocked.size;
 }
 
 const unlocked = new Set(JSON.parse(storageGetGlobal('qweyns_achievements') || '[]'));
@@ -1917,7 +1978,19 @@ function applyLang(lang){
 }
 $('#langToggle').addEventListener('click', () => {
   clickSound();
-  applyLang(currentLang === 'en' ? 'ru' : 'en');
+  const newLang = currentLang === 'en' ? 'ru' : 'en';
+  const profile = $('#profile');
+  // brief cross-fade instead of every label snapping to the new language
+  // at once — this is the one re-render that touches nearly the whole card
+  if (profile && profile.classList.contains('show')){
+    profile.classList.add('lang-swap');
+    setTimeout(() => {
+      applyLang(newLang);
+      profile.classList.remove('lang-swap');
+    }, 160);
+  } else {
+    applyLang(newLang);
+  }
 });
 // set the button's initial label to the *other* language before first paint-relevant interaction
 $('#langToggle').textContent = currentLang === 'en' ? 'RU' : 'EN';
@@ -2003,16 +2076,28 @@ function ghDescribe(ev){
 function renderGithubActivity(){
   const body = $('#ghBody');
   if (!body) return;
+
+  // fade the swap instead of snapping — matters most on language switch,
+  // since that's a re-render of already-visible content
+  function applyContent(html){
+    const doSwap = () => { body.innerHTML = html; body.style.opacity = '1'; };
+    if (body.childElementCount === 0){ doSwap(); return; }
+    body.style.opacity = '0';
+    setTimeout(doSwap, 180);
+  }
+
   if (ghFetchFailed || (ghEventsCache && !ghEventsCache.length)){
-    body.innerHTML = `<div class="gh-row"><div>
+    applyContent(`<div class="gh-row"><div>
       <div class="gh-label">${t().ghUnavailable}</div>
       <div class="gh-sub"><a class="gh-link" href="https://github.com/qweyns" target="_blank" rel="noopener noreferrer">${t().ghViewProfile}</a></div>
-    </div></div>`;
+    </div></div>`);
     return;
   }
   if (!ghEventsCache) return; // still loading — skeleton stays as-is
-  const top = ghEventsCache.slice(0, 3);
-  body.innerHTML = top.map(ev => `
+  // show up to 8 — about 3 fit in view at once, the rest is one scroll away
+  // via the themed scrollbar instead of being hidden entirely
+  const top = ghEventsCache.slice(0, 8);
+  applyContent(top.map(ev => `
     <div class="gh-row">
       <div class="gh-dot"></div>
       <div>
@@ -2020,7 +2105,7 @@ function renderGithubActivity(){
         <div class="gh-sub">${ghTimeAgo(ev.created_at)}</div>
       </div>
     </div>
-  `).join('');
+  `).join(''));
 }
 (function loadGithubActivity(){
   if (!$('#ghWidget')) return;
