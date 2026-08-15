@@ -31,6 +31,39 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="qweyns">
 
+<link rel="preload" href="assets/fonts/MinecraftFiveBold.otf" as="font" type="font/otf" crossorigin>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  "mainEntity": {
+    "@type": "Person",
+    "name": "qweyns",
+    "url": "https://qweyns.github.io/",
+    "image": "https://avatars.githubusercontent.com/u/180417247?v=4",
+    "jobTitle": "Java developer",
+    "description": "Java developer building Minecraft plugins (SmashEgg, QweMascots, QweMine).",
+    "sameAs": [
+      "https://github.com/qweyns",
+      "https://t.me/iswexi"
+    ]
+  }
+}
+</script>
+
+<script>
+  /* applied before first paint so a saved theme choice doesn't flash the
+     default theme for a frame before switching — this has to run
+     synchronously in <head>, not in the main script at the end of body */
+  (function(){
+    try{
+      var t = localStorage.getItem('qweyns_theme');
+      if (t && t !== 'lime') document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
+
 <style>
   @font-face{
     font-family:'MinecraftFive';
@@ -40,6 +73,15 @@
     font-display:swap;
   }
 
+  /* ============================================================
+     THEME SYSTEM — 6 palettes total, switched via [data-theme] on
+     <html>. "lime" is the default and lives in :root (no attribute
+     needed); the other 5 override every variable :root defines, plus
+     a few theming-support variables (accent-rgb, shadow-rgb, cursor
+     icon, color-scheme) that exist purely so hardcoded rgba()/cursor
+     values elsewhere in the file can stay theme-aware instead of
+     silently staying lime forever.
+     ============================================================ */
   :root{
     --bg:            #0b0d11;
     --panel:         #12151c;
@@ -50,10 +92,58 @@
     --text-dim:      #93a8b5;
     --text-faint:    #5b6d78;
     --accent:        #bef264;
+    --accent-rgb:    190,242,100;
     --accent-soft:   rgba(190,242,100,.14);
     --ok:            #7fbf8f;
+    --ok-rgb:        127,191,143;
+    --shadow-rgb:    0,0,0;
+    --vignette-alpha:.55;
+    --cursor-icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g fill='%23e4eaef' stroke='%230b0d11' stroke-width='1'><rect x='2' y='2' width='2' height='2'/><rect x='2' y='4' width='2' height='2'/><rect x='2' y='6' width='2' height='2'/><rect x='2' y='8' width='2' height='2'/><rect x='2' y='10' width='2' height='2'/><rect x='4' y='4' width='2' height='2'/><rect x='4' y='6' width='2' height='2'/><rect x='4' y='8' width='2' height='2'/><rect x='6' y='6' width='2' height='2'/><rect x='6' y='8' width='2' height='2'/><rect x='4' y='10' width='2' height='2'/><rect x='6' y='11' width='2' height='2'/></g></svg>");
     --ease: cubic-bezier(.22,.85,.32,1);
+    color-scheme: dark;
   }
+
+  /* amber — the site's original accent, before it became lime */
+  [data-theme="amber"]{
+    --accent:#e3a857; --accent-rgb:227,168,87; --accent-soft:rgba(227,168,87,.14);
+  }
+  /* pink — same dark base, pale pink accent */
+  [data-theme="pink"]{
+    --accent:#f9a8d4; --accent-rgb:249,168,212; --accent-soft:rgba(249,168,212,.14);
+  }
+  /* cyan — same dark base, sky-blue accent */
+  [data-theme="cyan"]{
+    --accent:#38bdf8; --accent-rgb:56,189,248; --accent-soft:rgba(56,189,248,.14);
+  }
+  /* black — true OLED black instead of dark navy, monochrome accent */
+  [data-theme="black"]{
+    --bg:#000000; --panel:#0a0a0a; --panel-2:#111111;
+    --border:#242424; --border-soft:#1b1b1b;
+    --text:#f4f4f5; --text-dim:#9a9a9f; --text-faint:#5c5c61;
+    --accent:#f4f4f5; --accent-rgb:244,244,245; --accent-soft:rgba(244,244,245,.12);
+    --shadow-rgb:0,0,0; --vignette-alpha:.65;
+    --cursor-icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g fill='%23f4f4f5' stroke='%23000000' stroke-width='1'><rect x='2' y='2' width='2' height='2'/><rect x='2' y='4' width='2' height='2'/><rect x='2' y='6' width='2' height='2'/><rect x='2' y='8' width='2' height='2'/><rect x='2' y='10' width='2' height='2'/><rect x='4' y='4' width='2' height='2'/><rect x='4' y='6' width='2' height='2'/><rect x='4' y='8' width='2' height='2'/><rect x='6' y='6' width='2' height='2'/><rect x='6' y='8' width='2' height='2'/><rect x='4' y='10' width='2' height='2'/><rect x='6' y='11' width='2' height='2'/></g></svg>");
+  }
+  /* light — the odd one out: everything above assumes a dark base, so this
+     is the one theme that also needs softer (not pure-black) shadows and a
+     much lower vignette alpha, or both would look muddy on a white page */
+  [data-theme="light"]{
+    --bg:#f4f5f7; --panel:#ffffff; --panel-2:#eef0f3;
+    --border:#d8dce2; --border-soft:#e4e7ec;
+    --text:#1a1d21; --text-dim:#52606d; --text-faint:#8a94a3;
+    --accent:#65a30d; --accent-rgb:101,163,13; --accent-soft:rgba(101,163,13,.12);
+    --ok:#16a34a; --ok-rgb:22,163,74;
+    --shadow-rgb:30,41,59; --vignette-alpha:.10;
+    --cursor-icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g fill='%231a1d21' stroke='%23f4f5f7' stroke-width='1'><rect x='2' y='2' width='2' height='2'/><rect x='2' y='4' width='2' height='2'/><rect x='2' y='6' width='2' height='2'/><rect x='2' y='8' width='2' height='2'/><rect x='2' y='10' width='2' height='2'/><rect x='4' y='4' width='2' height='2'/><rect x='4' y='6' width='2' height='2'/><rect x='4' y='8' width='2' height='2'/><rect x='6' y='6' width='2' height='2'/><rect x='6' y='8' width='2' height='2'/><rect x='4' y='10' width='2' height='2'/><rect x='6' y='11' width='2' height='2'/></g></svg>");
+    color-scheme: light;
+  }
+  /* theme-switch smoothing note: components with their own `transition`
+     shorthand elsewhere in this file have background-color/border-color/
+     color merged directly into that existing list (searching for var(--ease)
+     transitions and editing them in place) rather than declared here —
+     a second competing `transition` rule would just lose the cascade to
+     whichever one is more specific and never actually apply. body's own
+     transition below covers the page background + default text color. */
 
   *{box-sizing:border-box;}
 
@@ -90,14 +180,26 @@
     position:relative;
     overflow-x:hidden;
     cursor:default;
+    transition:background-color .35s var(--ease), color .35s var(--ease);
   }
 
-  /* pixel cursor */
+  /* pixel cursor — themed per-palette via --cursor-icon, since the cursor
+     property can't reference a plain color var, only a full url() */
   body, a, button, input{
-    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g fill='%23e4eaef' stroke='%230b0d11' stroke-width='1'><rect x='2' y='2' width='2' height='2'/><rect x='2' y='4' width='2' height='2'/><rect x='2' y='6' width='2' height='2'/><rect x='2' y='8' width='2' height='2'/><rect x='2' y='10' width='2' height='2'/><rect x='4' y='4' width='2' height='2'/><rect x='4' y='6' width='2' height='2'/><rect x='4' y='8' width='2' height='2'/><rect x='6' y='6' width='2' height='2'/><rect x='6' y='8' width='2' height='2'/><rect x='4' y='10' width='2' height='2'/><rect x='6' y='11' width='2' height='2'/></g></svg>") 2 2, auto;
+    cursor: var(--cursor-icon) 2 2, auto;
   }
 
-  /* ---- top-right control corner: language + sound ---- */
+  /* ---- accessibility: skip straight to the console, bypassing all the
+     decorative boot/avatar/player content for keyboard & screen-reader users ---- */
+  .skip-link{
+    position:fixed; top:-100px; left:14px; z-index:10002;
+    background:var(--accent); color:var(--bg); padding:8px 14px; border-radius:6px;
+    font-size:11px; font-weight:700; text-decoration:none;
+    transition:top .2s var(--ease);
+  }
+  .skip-link:focus{ top:14px; }
+
+  /* ---- top-right control corner: theme + language + sound ---- */
   .ctrl-corner{
     position:fixed; top:14px; right:14px; z-index:10001;
     display:flex; gap:6px;
@@ -113,6 +215,45 @@
   .ctrl-btn:hover{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); transform:translateY(-1px); }
   .ctrl-btn:active{ transform:translateY(0) scale(.92); }
   @media (max-width:480px){ .ctrl-corner{ top:8px; right:8px; } .ctrl-btn{ height:24px; font-size:9px; min-width:28px; } }
+
+  /* ---- theme picker: a small swatch-dot button that opens a popover of
+     6 circular swatches. The dot itself always reflects the current theme's
+     accent, so the button doubles as a status indicator. ---- */
+  .theme-btn{ position:relative; }
+  .theme-btn-dot{
+    width:13px; height:13px; border-radius:50%;
+    background:var(--accent); box-shadow:0 0 0 1px var(--border) inset;
+    transition:background-color .2s ease;
+  }
+  .theme-popover{
+    position:absolute; top:calc(100% + 8px); right:0;
+    display:flex; gap:8px; padding:8px;
+    background:var(--panel); border:1px solid var(--border); border-radius:8px;
+    box-shadow:0 14px 30px -10px rgba(var(--shadow-rgb),.55);
+    opacity:0; visibility:hidden; transform:translateY(-6px) scale(.96);
+    transition:opacity .2s var(--ease), transform .2s var(--ease), visibility 0s linear .2s;
+    z-index:10002;
+  }
+  .theme-popover.open{
+    opacity:1; visibility:visible; transform:translateY(0) scale(1);
+    transition:opacity .2s var(--ease), transform .2s var(--ease), visibility 0s linear 0s;
+  }
+  .theme-swatch{
+    width:22px; height:22px; border-radius:50%; padding:0; cursor:pointer;
+    background:var(--sw-bg, var(--sw)); border:2px solid transparent;
+    box-shadow:0 0 0 1px var(--border) inset, inset 0 0 0 6px var(--sw);
+    transition:transform .15s var(--ease), box-shadow .15s ease;
+  }
+  .theme-swatch:hover{ transform:scale(1.12); }
+  .theme-swatch:active{ transform:scale(.94); }
+  .theme-swatch.active{ box-shadow:0 0 0 1px var(--sw) inset, inset 0 0 0 6px var(--sw), 0 0 0 2px var(--panel), 0 0 0 4px var(--sw); }
+  .theme-swatch[data-theme="lime"]{ --sw:#bef264; }
+  .theme-swatch[data-theme="amber"]{ --sw:#e3a857; }
+  .theme-swatch[data-theme="pink"]{ --sw:#f9a8d4; }
+  .theme-swatch[data-theme="cyan"]{ --sw:#38bdf8; }
+  .theme-swatch[data-theme="black"]{ --sw:#f4f4f5; --sw-bg:#000; }
+  .theme-swatch[data-theme="light"]{ --sw:#65a30d; --sw-bg:#fff; }
+  @media (max-width:480px){ .theme-popover{ right:auto; left:0; } }
 
   /* ---- entry gate: click/tap/key anywhere to reveal the site + start music ---- */
   #gate{
@@ -160,14 +301,14 @@
   @keyframes gridshift{ from{ background-position:0 0, 0 0; } to{ background-position:42px 84px, 42px 84px; } }
   .bg-glow{
     position:fixed; top:-10%; right:-10%; width:60vmax; height:60vmax;
-    background:radial-gradient(circle, rgba(190,242,100,.10) 0%, transparent 65%);
+    background:radial-gradient(circle, rgba(var(--accent-rgb),.10) 0%, transparent 65%);
     filter:blur(10px); pointer-events:none;
     animation:drift 20s ease-in-out infinite alternate;
   }
   @keyframes drift{ from{ transform:translate(0,0) scale(1); } to{ transform:translate(-5%, 5%) scale(1.08); } }
   .bg-vignette{
     position:fixed; inset:0;
-    background:radial-gradient(ellipse 90% 80% at 50% 40%, transparent 55%, rgba(0,0,0,.55) 100%);
+    background:radial-gradient(ellipse 90% 80% at 50% 40%, transparent 55%, rgba(var(--shadow-rgb),var(--vignette-alpha)) 100%);
     pointer-events:none;
   }
   #particles{ position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:1; }
@@ -200,11 +341,11 @@
     background:var(--panel);
     border:1px solid var(--border);
     border-radius:10px;
-    box-shadow:0 30px 80px -20px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.02) inset;
+    box-shadow:0 30px 80px -20px rgba(var(--shadow-rgb),.6), 0 0 0 1px rgba(255,255,255,.02) inset;
     overflow:hidden;
     animation:rise-in .6s var(--ease) both;
     transform-style:preserve-3d;
-    transition:transform .25s var(--ease);
+    transition:transform .25s var(--ease), background-color .35s var(--ease), border-color .35s var(--ease), box-shadow .35s var(--ease);
     will-change:transform;
   }
   @keyframes rise-in{ from{ opacity:0; transform:translateY(18px) scale(.97); } to{ opacity:1; transform:translateY(0) scale(1); } }
@@ -256,12 +397,12 @@
     padding:3px 8px 3px 6px; border-radius:3px; animation:fadeslide .4s ease .12s both;
   }
   .badge.b-vacation .pulse{ width:6px; height:6px; border-radius:1px; background:var(--ok); animation:pulse 2s infinite; }
-  .badge.b-java{ color:#bef264; border-color:#3d4f5a; }
-  .badge.b-mc{ color:#7fbf8f; border-color:#2e4a34; }
+  .badge.b-java{ color:var(--accent); border-color:var(--border); }
+  .badge.b-mc{ color:var(--ok); border-color:var(--border); }
   @keyframes pulse{
-    0%{ box-shadow:0 0 0 0 rgba(127,191,143,.45); }
-    70%{ box-shadow:0 0 0 6px rgba(127,191,143,0); }
-    100%{ box-shadow:0 0 0 0 rgba(127,191,143,0); }
+    0%{ box-shadow:0 0 0 0 rgba(var(--ok-rgb),.45); }
+    70%{ box-shadow:0 0 0 6px rgba(var(--ok-rgb),0); }
+    100%{ box-shadow:0 0 0 0 rgba(var(--ok-rgb),0); }
   }
 
   .role{ margin-top:7px; font-size:12px; color:var(--accent); min-height:18px; }
@@ -328,7 +469,7 @@
     background:var(--panel); border:1px solid var(--border); color:var(--text-dim);
     font-size:9px; letter-spacing:.03em; white-space:nowrap; padding:4px 7px; border-radius:4px;
     opacity:0; pointer-events:none; transition:opacity .15s ease, transform .15s ease;
-    box-shadow:0 6px 16px -6px rgba(0,0,0,.6);
+    box-shadow:0 6px 16px -6px rgba(var(--shadow-rgb),.6);
   }
   .pbtn .ptip::after{
     content:""; position:absolute; top:100%; left:50%; transform:translateX(-50%);
@@ -392,6 +533,17 @@
   #console-out .c-cmd::before{ content:"guest@qweyns:~$ "; color:var(--accent); }
   #console-out a{ color:var(--accent); }
 
+  /* brief "typing" indicator before a command's response prints — a small
+     terminal-flavored nod rather than everything resolving instantly */
+  .typing-dots{ display:inline-flex; gap:3px; padding:2px 0; }
+  .typing-dots span{
+    width:4px; height:4px; border-radius:50%; background:var(--text-faint);
+    animation:typing-bounce 1s ease-in-out infinite;
+  }
+  .typing-dots span:nth-child(2){ animation-delay:.15s; }
+  .typing-dots span:nth-child(3){ animation-delay:.3s; }
+  @keyframes typing-bounce{ 0%,60%,100%{ opacity:.3; transform:translateY(0); } 30%{ opacity:1; transform:translateY(-2px); } }
+
   .socials{ display:flex; gap:10px; opacity:0; animation:fadeslide .4s ease .6s both; }
   .social-btn{
     width:44px; height:44px; display:flex; align-items:center; justify-content:center;
@@ -402,7 +554,7 @@
   .social-btn img{ width:23px; height:23px; display:block; object-fit:contain; }
   .social-btn:hover, .social-btn:focus-visible{
     transform:translateY(-3px); border-color:var(--accent);
-    box-shadow:0 0 0 1px var(--accent), 0 10px 20px -8px rgba(190,242,100,.5);
+    box-shadow:0 0 0 1px var(--accent), 0 10px 20px -8px rgba(var(--accent-rgb),.5);
     outline:none;
   }
   .social-btn:active{ transform:translateY(-1px) scale(.95); }
@@ -517,7 +669,7 @@
   }
   .vb-dot{
     width:5px; height:5px; border-radius:50%; background:var(--accent); flex-shrink:0;
-    box-shadow:0 0 6px rgba(190,242,100,.55);
+    box-shadow:0 0 6px rgba(var(--accent-rgb),.55);
   }
 
   /* ---- side columns: GitHub activity floats to the left of the terminal,
@@ -567,7 +719,7 @@
   .toast{
     background:var(--panel); border:1px solid var(--accent); border-radius:6px;
     padding:10px 16px; display:flex; align-items:center; gap:10px;
-    box-shadow:0 10px 30px -8px rgba(0,0,0,.6);
+    box-shadow:0 10px 30px -8px rgba(var(--shadow-rgb),.6);
     animation:toastin .4s var(--ease) both, toastout .4s ease 3.2s both;
   }
   @keyframes toastin{ from{ opacity:0; transform:translateY(-14px);} to{ opacity:1; transform:translateY(0);} }
@@ -611,6 +763,7 @@
     border:1px dashed var(--border); overflow:hidden; border-radius:6px;
   }
   .egg{ position:absolute; width:28px; height:28px; cursor:pointer; user-select:none; animation:eggpop .3s var(--ease); }
+  .egg-svg rect{ fill:var(--accent); }
   @keyframes eggpop{ from{ transform:scale(0);} to{ transform:scale(1);} }
   .game-foot{ display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim); margin-top:10px; }
   .game-start{
@@ -694,7 +847,7 @@
     background:var(--panel); border:1px solid var(--border); color:var(--text-dim);
     display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;
     opacity:0; transform:translateY(10px); pointer-events:none;
-    box-shadow:0 10px 24px -10px rgba(0,0,0,.6);
+    box-shadow:0 10px 24px -10px rgba(var(--shadow-rgb),.6);
     transition:opacity .25s var(--ease), transform .25s var(--ease), border-color .15s ease, color .15s ease;
   }
   .back-to-top.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
@@ -738,7 +891,20 @@
 
 <body>
 
+<a href="#cmdInput" class="skip-link">Skip to console</a>
+
 <div class="ctrl-corner">
+  <button class="ctrl-btn theme-btn" id="themeToggle" type="button" title="Theme" aria-haspopup="true" aria-expanded="false">
+    <span class="theme-btn-dot" id="themeBtnDot"></span>
+  </button>
+  <div class="theme-popover" id="themePopover" role="menu" aria-label="Theme">
+    <button class="theme-swatch" data-theme="lime" title="Lime" role="menuitemradio"></button>
+    <button class="theme-swatch" data-theme="amber" title="Amber" role="menuitemradio"></button>
+    <button class="theme-swatch" data-theme="pink" title="Pink" role="menuitemradio"></button>
+    <button class="theme-swatch" data-theme="cyan" title="Cyan" role="menuitemradio"></button>
+    <button class="theme-swatch" data-theme="black" title="Black" role="menuitemradio"></button>
+    <button class="theme-swatch" data-theme="light" title="Light" role="menuitemradio"></button>
+  </div>
   <button class="ctrl-btn" id="langToggle" type="button" title="Language / Язык">RU</button>
   <button class="ctrl-btn" id="soundToggle" type="button" title="Sound / Звук">🔊</button>
 </div>
@@ -934,6 +1100,77 @@
 <audio id="audio" preload="metadata"></audio>
 
 <script>
+/* ============================================================
+   theme system — 6 palettes, persisted to localStorage. The actual
+   <html data-theme="..."> attribute is already set before first paint
+   by the tiny inline script in <head> (avoids a flash of the old
+   theme); this module just wires up the picker UI and keeps anything
+   in JS (canvas trail, egg SVG) that can't read CSS vars directly
+   in sync with whichever theme is active.
+   ============================================================ */
+const THEME_NAMES = ['lime','amber','pink','cyan','black','light'];
+function themeStorageGet(key){ try { return localStorage.getItem(key); } catch(e){ return null; } }
+function themeStorageSet(key, val){ try { localStorage.setItem(key, val); } catch(e){} }
+
+let _accentRgbCache = null;
+function getAccentRgbCached(){
+  if (!_accentRgbCache){
+    _accentRgbCache = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim() || '190,242,100';
+  }
+  return _accentRgbCache;
+}
+
+function applyTheme(name, persist){
+  if (!THEME_NAMES.includes(name)) name = 'lime';
+  if (name === 'lime'){ document.documentElement.removeAttribute('data-theme'); }
+  else { document.documentElement.setAttribute('data-theme', name); }
+  _accentRgbCache = null; // invalidate — next trail frame re-reads the new theme's accent
+  if (persist) themeStorageSet('qweyns_theme', name);
+  const popover = document.getElementById('themePopover');
+  if (popover){
+    popover.querySelectorAll('.theme-swatch').forEach(sw => {
+      sw.classList.toggle('active', sw.dataset.theme === name);
+    });
+  }
+}
+
+(function initThemePicker(){
+  const btn = document.getElementById('themeToggle');
+  const popover = document.getElementById('themePopover');
+  if (!btn || !popover) return;
+
+  const current = document.documentElement.getAttribute('data-theme') || 'lime';
+  applyTheme(current, false);
+
+  function closePopover(){
+    popover.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+  }
+  function openPopover(){
+    popover.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    popover.classList.contains('open') ? closePopover() : openPopover();
+  });
+  document.addEventListener('click', (e) => {
+    if (popover.classList.contains('open') && !popover.contains(e.target) && e.target !== btn){
+      closePopover();
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && popover.classList.contains('open')) closePopover();
+  });
+  popover.querySelectorAll('.theme-swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      applyTheme(sw.dataset.theme, true);
+      closePopover();
+    });
+  });
+})();
+
 /* ============================================================
    language-independent config: links, tracks, counter key
    ============================================================ */
@@ -1260,7 +1497,7 @@ function renderViewsText(){
       const age = (now - d.t) / 600;
       const alpha = (1 - age) * 0.8;
       const size = 4 * (1 - age * 0.7);
-      ctx.fillStyle = `rgba(190,242,100,${alpha})`;
+      ctx.fillStyle = `rgba(${getAccentRgbCached()},${alpha})`;
       ctx.fillRect(d.x - size/2, d.y - size/2, size, size);
     }
     if (dots.length) raf = requestAnimationFrame(draw);
@@ -1864,7 +2101,7 @@ function spawnEgg(){
   gameField.querySelectorAll('.egg').forEach(e => e.remove());
   const egg = document.createElement('div');
   egg.className = 'egg';
-  egg.innerHTML = `<svg viewBox="0 0 8 8" width="28" height="28"><rect x="2" y="0" width="4" height="1" fill="#bef264"/><rect x="1" y="1" width="6" height="1" fill="#bef264"/><rect x="0" y="2" width="8" height="4" fill="#bef264"/><rect x="1" y="6" width="6" height="1" fill="#bef264"/><rect x="2" y="7" width="4" height="1" fill="#bef264"/></svg>`;
+  egg.innerHTML = `<svg class="egg-svg" viewBox="0 0 8 8" width="28" height="28"><rect x="2" y="0" width="4" height="1"/><rect x="1" y="1" width="6" height="1"/><rect x="0" y="2" width="8" height="4"/><rect x="1" y="6" width="6" height="1"/><rect x="2" y="7" width="4" height="1"/></svg>`;
   const fw = gameField.clientWidth - 30, fh = gameField.clientHeight - 30;
   egg.style.left = (Math.random() * fw) + 'px';
   egg.style.top = (Math.random() * fh) + 'px';
@@ -1919,21 +2156,62 @@ const COMMANDS = {
   // are handled: something worth stumbling onto rather than reading in a list
   matrix: () => { runMatrixRain(); unlock('matrix'); return null; },
 };
+const cmdHistory = [];
+let historyIndex = -1;
+
+function showTyping(callback){
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced){ callback(); return; }
+  const d = document.createElement('div');
+  d.className = 'c-line c-typing';
+  d.innerHTML = '<span class="typing-dots"><span></span><span></span><span></span></span>';
+  out.appendChild(d);
+  out.classList.add('open');
+  out.scrollTop = out.scrollHeight;
+  setTimeout(() => {
+    d.remove();
+    callback();
+  }, 220 + Math.random() * 180);
+}
+
 input.addEventListener('keydown', (e) => {
   keySound();
+
+  if (e.key === 'ArrowUp'){
+    if (!cmdHistory.length) return;
+    e.preventDefault();
+    historyIndex = historyIndex === -1 ? cmdHistory.length - 1 : Math.max(0, historyIndex - 1);
+    input.value = cmdHistory[historyIndex];
+    input.setSelectionRange(input.value.length, input.value.length);
+    return;
+  }
+  if (e.key === 'ArrowDown'){
+    if (!cmdHistory.length || historyIndex === -1) return;
+    e.preventDefault();
+    historyIndex++;
+    if (historyIndex >= cmdHistory.length){ historyIndex = -1; input.value = ''; }
+    else input.value = cmdHistory[historyIndex];
+    input.setSelectionRange(input.value.length, input.value.length);
+    return;
+  }
   if (e.key !== 'Enter') return;
+
   const raw = input.value.trim();
   if (!raw) return;
+  cmdHistory.push(raw);
+  historyIndex = -1;
   printLine(`<span class="c-cmd">${raw}</span>`);
   const cmd = raw.toLowerCase().split(' ')[0];
   const handler = COMMANDS[cmd];
-  if (handler){
-    const res = handler();
-    if (res) printLine(res.replace(/\n/g,'<br>'));
-  } else {
-    printLine(t().cNotFound(cmd));
-  }
   input.value = '';
+  showTyping(() => {
+    if (handler){
+      const res = handler();
+      if (res) printLine(res.replace(/\n/g,'<br>'));
+    } else {
+      printLine(t().cNotFound(cmd));
+    }
+  });
 });
 
 /* ============================================================

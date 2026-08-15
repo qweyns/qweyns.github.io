@@ -11,6 +11,18 @@
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
 <link rel="icon" type="image/png" sizes="512x512" href="assets/icons/favicon-512.png">
 
+<script>
+  /* mirrors the same saved-theme choice from the main site so landing here
+     from a dead link doesn't jump to a different palette — no switcher UI
+     here on purpose, this page stays deliberately minimal */
+  (function(){
+    try{
+      var t = localStorage.getItem('qweyns_theme');
+      if (t && t !== 'lime') document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
+
 <style>
   @font-face{
     font-family:'MinecraftFive';
@@ -27,7 +39,21 @@
     --text-dim:      #93a8b5;
     --text-faint:    #5b6d78;
     --accent:        #bef264;
+    --shadow-rgb:    0,0,0;
     --ease: cubic-bezier(.22,.85,.32,1);
+    color-scheme: dark;
+  }
+  [data-theme="amber"]{ --accent:#e3a857; }
+  [data-theme="pink"]{ --accent:#f9a8d4; }
+  [data-theme="cyan"]{ --accent:#38bdf8; }
+  [data-theme="black"]{
+    --bg:#000000; --panel:#0a0a0a; --border:#242424; --border-soft:#1b1b1b;
+    --text:#f4f4f5; --text-dim:#9a9a9f; --text-faint:#5c5c61; --accent:#f4f4f5;
+  }
+  [data-theme="light"]{
+    --bg:#f4f5f7; --panel:#ffffff; --border:#d8dce2; --border-soft:#e4e7ec;
+    --text:#1a1d21; --text-dim:#52606d; --text-faint:#8a94a3; --accent:#65a30d;
+    --shadow-rgb:30,41,59; color-scheme: light;
   }
 
   *{box-sizing:border-box;}
@@ -38,6 +64,7 @@
     -webkit-font-smoothing:none; font-smooth:never; letter-spacing:.02em;
     display:flex; align-items:center; justify-content:center;
     min-height:100vh; padding:24px; position:relative; overflow-x:hidden;
+    transition:background-color .3s var(--ease), color .3s var(--ease);
   }
   html{ scrollbar-width:thin; scrollbar-color:var(--border) var(--bg); }
   ::-webkit-scrollbar{ width:10px; height:10px; }
@@ -58,7 +85,7 @@
   }
   .bg-vignette{
     position:fixed; inset:0;
-    background:radial-gradient(ellipse 90% 80% at 50% 40%, transparent 55%, rgba(0,0,0,.55) 100%);
+    background:radial-gradient(ellipse 90% 80% at 50% 40%, transparent 55%, rgba(var(--shadow-rgb),.45) 100%);
     pointer-events:none;
   }
 
@@ -68,7 +95,7 @@
   .term{
     position:relative; width:100%; max-width:420px;
     background:var(--panel); border:1px solid var(--border); border-radius:10px;
-    box-shadow:0 30px 80px -20px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.02) inset;
+    box-shadow:0 30px 80px -20px rgba(var(--shadow-rgb),.6), 0 0 0 1px rgba(255,255,255,.02) inset;
     padding:30px 26px 26px; text-align:center;
     animation:settle .35s var(--ease) both;
   }
