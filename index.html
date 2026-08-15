@@ -59,7 +59,8 @@
   (function(){
     try{
       var t = localStorage.getItem('qweyns_theme');
-      if (t && t !== 'lime') document.documentElement.setAttribute('data-theme', t);
+      var valid = ['amber','pink','cyan','black'];
+      if (t && valid.indexOf(t) !== -1) document.documentElement.setAttribute('data-theme', t);
     }catch(e){}
   })();
 </script>
@@ -123,19 +124,6 @@
     --accent:#f4f4f5; --accent-rgb:244,244,245; --accent-soft:rgba(244,244,245,.12);
     --shadow-rgb:0,0,0; --vignette-alpha:.65;
     --cursor-icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g fill='%23f4f4f5' stroke='%23000000' stroke-width='1'><rect x='2' y='2' width='2' height='2'/><rect x='2' y='4' width='2' height='2'/><rect x='2' y='6' width='2' height='2'/><rect x='2' y='8' width='2' height='2'/><rect x='2' y='10' width='2' height='2'/><rect x='4' y='4' width='2' height='2'/><rect x='4' y='6' width='2' height='2'/><rect x='4' y='8' width='2' height='2'/><rect x='6' y='6' width='2' height='2'/><rect x='6' y='8' width='2' height='2'/><rect x='4' y='10' width='2' height='2'/><rect x='6' y='11' width='2' height='2'/></g></svg>");
-  }
-  /* light — the odd one out: everything above assumes a dark base, so this
-     is the one theme that also needs softer (not pure-black) shadows and a
-     much lower vignette alpha, or both would look muddy on a white page */
-  [data-theme="light"]{
-    --bg:#f4f5f7; --panel:#ffffff; --panel-2:#eef0f3;
-    --border:#d8dce2; --border-soft:#e4e7ec;
-    --text:#1a1d21; --text-dim:#52606d; --text-faint:#8a94a3;
-    --accent:#65a30d; --accent-rgb:101,163,13; --accent-soft:rgba(101,163,13,.12);
-    --ok:#16a34a; --ok-rgb:22,163,74;
-    --shadow-rgb:30,41,59; --vignette-alpha:.10;
-    --cursor-icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><g fill='%231a1d21' stroke='%23f4f5f7' stroke-width='1'><rect x='2' y='2' width='2' height='2'/><rect x='2' y='4' width='2' height='2'/><rect x='2' y='6' width='2' height='2'/><rect x='2' y='8' width='2' height='2'/><rect x='2' y='10' width='2' height='2'/><rect x='4' y='4' width='2' height='2'/><rect x='4' y='6' width='2' height='2'/><rect x='4' y='8' width='2' height='2'/><rect x='6' y='6' width='2' height='2'/><rect x='6' y='8' width='2' height='2'/><rect x='4' y='10' width='2' height='2'/><rect x='6' y='11' width='2' height='2'/></g></svg>");
-    color-scheme: light;
   }
   /* theme-switch smoothing note: components with their own `transition`
      shorthand elsewhere in this file have background-color/border-color/
@@ -252,7 +240,6 @@
   .theme-swatch[data-theme="pink"]{ --sw:#f9a8d4; }
   .theme-swatch[data-theme="cyan"]{ --sw:#38bdf8; }
   .theme-swatch[data-theme="black"]{ --sw:#f4f4f5; --sw-bg:#000; }
-  .theme-swatch[data-theme="light"]{ --sw:#65a30d; --sw-bg:#fff; }
   @media (max-width:480px){ .theme-popover{ right:auto; left:0; } }
 
   /* ---- entry gate: click/tap/key anywhere to reveal the site + start music ---- */
@@ -388,7 +375,7 @@
 
   .id-block{ min-width:0; flex:1; }
   .name-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-  .name{ font-size:20px; font-weight:700; color:var(--text); animation:fadeslide .4s ease .05s both; }
+  .name{ display:inline-block; font-size:20px; font-weight:700; color:var(--text); animation:fadeslide .4s ease .05s both; }
   @keyframes fadeslide{ from{ opacity:0; transform:translateX(-6px);} to{ opacity:1; transform:translateX(0);} }
 
   .badge{
@@ -584,8 +571,9 @@
   }
   #restoreAdBtn.is-visible{ opacity:1; max-width:160px; }
 
+  #achProgressText{ display:inline-block; }
   #achProgressText.pulse-once{ animation:ach-pulse .5s var(--ease); }
-  @keyframes ach-pulse{ 0%{ color:var(--accent); transform:scale(1.12); display:inline-block; } 100%{ color:inherit; transform:scale(1); } }
+  @keyframes ach-pulse{ 0%{ color:var(--accent); transform:scale(1.12); } 100%{ color:inherit; transform:scale(1); } }
 
   .ad-panel{
     width:190px; flex-shrink:0; background:var(--panel);
@@ -840,6 +828,28 @@
   @keyframes ghpulse{ 0%,100%{ opacity:.25; } 50%{ opacity:.55; } }
   @media (max-width:1179px){ .gh-widget{ width:100%; max-width:560px; box-sizing:border-box; margin:0 auto; } }
 
+  /* ---- language breakdown — a GitHub-style segmented bar aggregated from
+     every non-fork repo's /languages endpoint (byte counts, not just each
+     repo's single primary language), so the proportions actually mean
+     something rather than just counting repos per language. ---- */
+  .lang-bar{
+    display:flex; height:9px; border-radius:5px; overflow:hidden;
+    background:var(--panel-2);
+    transition:opacity .22s ease;
+  }
+  .lang-seg{
+    height:100%; flex-shrink:0;
+    transition:opacity .15s ease, width .35s var(--ease);
+  }
+  .lang-seg:hover{ opacity:.8; }
+  .lang-legend{
+    display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:11px;
+    transition:opacity .22s ease;
+  }
+  .lang-item{ display:flex; align-items:center; gap:5px; font-size:10px; color:var(--text-dim); }
+  .lang-dot{ width:7px; height:7px; border-radius:2px; flex-shrink:0; }
+  .lang-pct{ color:var(--text-faint); }
+
   /* ---- back to top ---- */
   .back-to-top{
     position:fixed; right:18px; bottom:18px; z-index:500;
@@ -903,7 +913,6 @@
     <button class="theme-swatch" data-theme="pink" title="Pink" role="menuitemradio"></button>
     <button class="theme-swatch" data-theme="cyan" title="Cyan" role="menuitemradio"></button>
     <button class="theme-swatch" data-theme="black" title="Black" role="menuitemradio"></button>
-    <button class="theme-swatch" data-theme="light" title="Light" role="menuitemradio"></button>
   </div>
   <button class="ctrl-btn" id="langToggle" type="button" title="Language / Язык">RU</button>
   <button class="ctrl-btn" id="soundToggle" type="button" title="Sound / Звук">🔊</button>
@@ -1030,7 +1039,7 @@
       <button class="restore-ad-btn" id="copyLinkBtn" type="button"><span id="copyLinkText">copy link</span></button>
       <button class="restore-ad-btn" id="saveContactBtn" type="button"><span id="saveContactText">save contact</span></button>
       <button class="restore-ad-btn" id="achProgressBtn" type="button" title="type 'achievements' in the console">
-        <span id="achProgressText">achievements: 0/8</span>
+        <span id="achProgressText">achievements: 0/9</span>
       </button>
     </div>
   </div>
@@ -1042,6 +1051,14 @@
       <div id="ghBody">
         <div class="gh-skel" style="width:88%"></div>
         <div class="gh-skel" style="width:62%"></div>
+      </div>
+    </div>
+
+    <div class="gh-widget" id="langWidget">
+      <div class="ad-tag"><span class="blink-dot"></span><span id="langLabelText">LANGUAGES</span></div>
+      <div class="lang-bar" id="langBar"></div>
+      <div class="lang-legend" id="langLegend">
+        <div class="gh-skel" style="width:70%"></div>
       </div>
     </div>
   </div>
@@ -1108,7 +1125,7 @@
    in JS (canvas trail, egg SVG) that can't read CSS vars directly
    in sync with whichever theme is active.
    ============================================================ */
-const THEME_NAMES = ['lime','amber','pink','cyan','black','light'];
+const THEME_NAMES = ['lime','amber','pink','cyan','black'];
 function themeStorageGet(key){ try { return localStorage.getItem(key); } catch(e){ return null; } }
 function themeStorageSet(key, val){ try { localStorage.setItem(key, val); } catch(e){} }
 
@@ -1242,6 +1259,9 @@ const I18N = {
     ghLabel: 'GITHUB ACTIVITY',
     ghUnavailable: 'Activity feed unavailable right now',
     ghViewProfile: 'view on GitHub →',
+    langLabel: 'LANGUAGES',
+    langOther: 'Other',
+    langUnavailable: 'Language stats unavailable right now',
     ghJustNow: 'just now',
     ghMinsAgo: (n) => `${n}m ago`,
     ghHoursAgo: (n) => `${n}h ago`,
@@ -1307,6 +1327,9 @@ const I18N = {
     ghLabel: 'GITHUB-АКТИВНОСТЬ',
     ghUnavailable: 'Лента активности сейчас недоступна',
     ghViewProfile: 'открыть GitHub →',
+    langLabel: 'ЯЗЫКИ',
+    langOther: 'Другое',
+    langUnavailable: 'Статистика по языкам сейчас недоступна',
     ghJustNow: 'только что',
     ghMinsAgo: (n) => `${n} мин назад`,
     ghHoursAgo: (n) => `${n} ч назад`,
@@ -2246,6 +2269,7 @@ function applyLang(lang){
   $('#gateSub').textContent = t().gateSub;
   updateAchProgress();
   $('#ghLabelText').textContent = t().ghLabel;
+  $('#langLabelText').textContent = t().langLabel;
   $('#shortcutsTitleText').textContent = t().shortcutsTitle;
   $('#scPlayPause').textContent = t().scPlayPause;
   $('#scPrevNext').textContent = t().scPrevNext;
@@ -2254,6 +2278,7 @@ function applyLang(lang){
   $('#scThisMenu').textContent = t().scThisMenu;
   $('#saveContactText').textContent = t().saveContact;
   renderGithubActivity();
+  renderLangStats();
 
   startRoleTyping();
   renderViewsText();
@@ -2399,6 +2424,100 @@ function renderGithubActivity(){
       renderGithubActivity();
     })
     .catch(() => { ghFetchFailed = true; renderGithubActivity(); });
+})();
+
+/* ============================================================
+   language breakdown — aggregated across every non-fork repo's real
+   byte counts (not just each repo's single "primary language"), cached
+   in localStorage so a repeat visit within a few hours doesn't re-spend
+   ~N+1 API calls against the unauthenticated 60/hr GitHub rate limit.
+   ============================================================ */
+const LANG_COLORS = {
+  Java:'#b07219', JavaScript:'#f1e05a', TypeScript:'#3178c6', HTML:'#e34c26',
+  CSS:'#563d7c', Python:'#3572A5', Kotlin:'#A97BFF', Shell:'#89e051',
+  Dockerfile:'#384d54', C:'#555555', 'C++':'#f34b7d', 'C#':'#178600',
+  Lua:'#000080', Rust:'#dea584', Go:'#00ADD8', PHP:'#4F5D95', Ruby:'#701516',
+  Batchfile:'#C1F12E', Vue:'#41b883', SCSS:'#c6538c', Markdown:'#083fa1',
+  Groovy:'#4298b8', Dart:'#00B4AB', Swift:'#F05138',
+};
+function langColor(name){ return LANG_COLORS[name] || 'var(--text-faint)'; }
+
+let langStatsTotals = null, langFetchFailed = false;
+const LANG_CACHE_KEY = 'qweyns_lang_stats_v1';
+const LANG_CACHE_TTL = 6 * 60 * 60 * 1000; // 6h — languages don't shift fast enough to need fresher data than that
+
+function renderLangStats(){
+  const bar = $('#langBar');
+  const legend = $('#langLegend');
+  if (!bar || !legend) return;
+
+  if (langFetchFailed || (langStatsTotals && !Object.keys(langStatsTotals).length)){
+    bar.innerHTML = '';
+    legend.innerHTML = `<div class="gh-row"><div>
+      <div class="gh-label">${t().langUnavailable}</div>
+      <div class="gh-sub"><a class="gh-link" href="https://github.com/qweyns" target="_blank" rel="noopener noreferrer">${t().ghViewProfile}</a></div>
+    </div></div>`;
+    return;
+  }
+  if (!langStatsTotals) return; // still loading — skeleton stays as-is
+
+  const sum = Object.values(langStatsTotals).reduce((a, b) => a + b, 0);
+  if (!sum) return;
+  const entries = Object.entries(langStatsTotals).sort((a, b) => b[1] - a[1]);
+  const top = entries.slice(0, 5);
+  const restBytes = entries.slice(5).reduce((a, [, v]) => a + v, 0);
+  if (restBytes > 0) top.push([t().langOther, restBytes]);
+
+  bar.innerHTML = top.map(([name, bytes]) => {
+    const pct = (bytes / sum * 100);
+    return `<span class="lang-seg" style="width:${pct}%;background:${langColor(name)}" title="${escapeHtml(name)} — ${pct.toFixed(1)}%"></span>`;
+  }).join('');
+
+  legend.innerHTML = top.map(([name, bytes]) => {
+    const pct = (bytes / sum * 100);
+    return `<div class="lang-item"><span class="lang-dot" style="background:${langColor(name)}"></span><span>${escapeHtml(name)}</span><span class="lang-pct">${pct.toFixed(1)}%</span></div>`;
+  }).join('');
+}
+
+(function loadLanguageStats(){
+  if (!$('#langWidget')) return;
+
+  try{
+    const raw = localStorage.getItem(LANG_CACHE_KEY);
+    if (raw){
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.ts && (Date.now() - parsed.ts) < LANG_CACHE_TTL && parsed.totals){
+        langStatsTotals = parsed.totals;
+        renderLangStats();
+        return;
+      }
+    }
+  }catch(e){}
+
+  fetch('https://api.github.com/users/qweyns/repos?per_page=100&type=owner')
+    .then(res => { if (!res.ok) throw new Error('repos fetch failed'); return res.json(); })
+    .then(repos => {
+      const realRepos = (Array.isArray(repos) ? repos : []).filter(r => !r.fork);
+      // capped so a profile with a lot of repos can't blow through the
+      // unauthenticated rate limit in one page load
+      const capped = realRepos.slice(0, 30);
+      return Promise.all(capped.map(r =>
+        fetch(r.languages_url).then(res => res.ok ? res.json() : {}).catch(() => ({}))
+      ));
+    })
+    .then(results => {
+      const totals = {};
+      results.forEach(langs => {
+        Object.entries(langs || {}).forEach(([lang, bytes]) => {
+          totals[lang] = (totals[lang] || 0) + bytes;
+        });
+      });
+      if (!Object.keys(totals).length) throw new Error('no language data');
+      langStatsTotals = totals;
+      try{ localStorage.setItem(LANG_CACHE_KEY, JSON.stringify({ ts: Date.now(), totals })); }catch(e){}
+      renderLangStats();
+    })
+    .catch(() => { langFetchFailed = true; renderLangStats(); });
 })();
 
 /* ============================================================

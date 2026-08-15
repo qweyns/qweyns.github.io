@@ -18,7 +18,8 @@
   (function(){
     try{
       var t = localStorage.getItem('qweyns_theme');
-      if (t && t !== 'lime') document.documentElement.setAttribute('data-theme', t);
+      var valid = ['amber','pink','cyan','black'];
+      if (t && valid.indexOf(t) !== -1) document.documentElement.setAttribute('data-theme', t);
     }catch(e){}
   })();
 </script>
@@ -49,11 +50,6 @@
   [data-theme="black"]{
     --bg:#000000; --panel:#0a0a0a; --border:#242424; --border-soft:#1b1b1b;
     --text:#f4f4f5; --text-dim:#9a9a9f; --text-faint:#5c5c61; --accent:#f4f4f5;
-  }
-  [data-theme="light"]{
-    --bg:#f4f5f7; --panel:#ffffff; --border:#d8dce2; --border-soft:#e4e7ec;
-    --text:#1a1d21; --text-dim:#52606d; --text-faint:#8a94a3; --accent:#65a30d;
-    --shadow-rgb:30,41,59; color-scheme: light;
   }
 
   *{box-sizing:border-box;}
